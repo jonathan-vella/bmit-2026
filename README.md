@@ -1,292 +1,109 @@
 <!-- markdownlint-disable MD013 MD033 MD041 -->
 
-# APEX Accelerator
+# APEX at The Perspectives 2026
 
 <div align="center">
   <img
-   src="https://capsule-render.vercel.app/api?type=waving&height=180&color=0:0A66C2,50:0078D4,110:00B7C3&text=APEX&fontSize=44&fontColor=FFFFFF&fontAlignY=34&desc=Agentic%20Platform%20Engineering%20eXperience%20for%20Azure&descAlignY=56"
-   alt="APEX banner" />
+    src="https://capsule-render.vercel.app/api?type=waving&height=180&color=0:0A66C2,50:0078D4,110:00B7C3&text=APEX&fontSize=44&fontColor=FFFFFF&fontAlignY=34&desc=Live%20Demo%20Workspace%20for%20The%20Perspectives%202026&descAlignY=56"
+    alt="APEX live demo banner" />
 </div>
 
-> **Modernize your Azure Infrastructure with AI.** A production-ready template for building Well-Architected
-> environments using custom Copilot agents, Dev Containers, and the Model Context Protocol (MCP).
+> APEX is the Agentic Platform Engineering eXperience for Azure.
+> This repository is the live demo workspace for Jonathan Vella's session at
+> [The Perspectives 2026](https://tech.bmit.com.mt/the-perspectives-2026).
 
-[![Azure](https://img.shields.io/badge/Azure-0078D4?logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com)
-[![Bicep](https://img.shields.io/badge/Bicep-0078D4?logo=azure-pipelines&logoColor=white)](https://github.com/Azure/bicep)
-[![Terraform](https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white)](https://www.terraform.io)
-[![Copilot](https://img.shields.io/badge/GitHub_Copilot-000000?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
+[![Event](https://img.shields.io/badge/BMIT-The_Perspectives_2026-0A66C2)](https://tech.bmit.com.mt/the-perspectives-2026)
+[![Docs](https://img.shields.io/badge/APEX-Live_Documentation-0078D4)](https://jonathan-vella.github.io/azure-agentic-infraops/)
+[![Demo](https://img.shields.io/badge/APEX-Nordic_Fresh_Foods_Demo-00B7C3)](https://jonathan-vella.github.io/azure-agentic-infraops/demo/)
+[![Copilot](https://img.shields.io/badge/GitHub_Copilot-GPT--powered-000000?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Overview
+## Why This Matters Today
 
-This accelerator provides the scaffolding and governance to move from requirements to deployed infrastructure
-using an orchestrated multi-agent workflow. It leverages domain-specific AI agents to ensure every deployment
-is Well-Architected, governed, and documented.
+The event theme is practical cloud leadership: reducing complexity, improving resilience,
+and making better infrastructure decisions under compliance and cost pressure.
 
-**What you get**: Specialized agents, skills, validation scripts, a full dev container with all
-tools pre-installed, and an optional weekly sync workflow that keeps your agents and skills up to date with
-the [upstream APEX project](https://github.com/jonathan-vella/azure-agentic-infraops).
+APEX is built for exactly that problem space. It turns a plain-language infrastructure ask
+into a structured delivery flow with AI agents doing the preparation work and humans keeping
+control over approvals, trade-offs, and deployment decisions.
 
----
+## What APEX Does
 
-## Prerequisites
+1. Captures business and technical requirements from natural-language prompts.
+2. Assesses target architecture against Azure Well-Architected guidance.
+3. Discovers governance and policy constraints before code generation.
+4. Produces Bicep or Terraform using Azure Verified Modules where possible.
+5. Validates outputs and assembles deployment-ready and as-built documentation.
 
-| Requirement            | Details                                              |
-| ---------------------- | ---------------------------------------------------- |
-| **VS Code**            | Latest stable release                                |
-| **GitHub Copilot**     | Active license (Individual, Business, or Enterprise) |
-| **Docker Desktop**     | For the dev container (or GitHub Codespaces)         |
-| **Azure subscription** | Optional for Steps 1-5; required for Step 6 (Deploy) |
+## What I Am Showing in the Live Demo
 
----
+- A real multi-step agent workflow from prompt to Azure delivery artifacts.
+- Human approval gates instead of blind automation.
+- Architecture, pricing, governance, and implementation decisions in one flow.
+- Demo outputs based on the Nordic Fresh Foods scenario published on the APEX site.
 
-## Quick Start
+## Follow Along
 
-### 1. Create Your Repository
+| Experience       | Link                                                                                                | What you will find                                       |
+| ---------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Main site        | [APEX documentation](https://jonathan-vella.github.io/azure-agentic-infraops/)                      | Product overview, workflow, and getting started guidance |
+| Demo walkthrough | [Nordic Fresh Foods demo](https://jonathan-vella.github.io/azure-agentic-infraops/demo/)            | Real generated outputs across the full pipeline          |
+| How it works     | [Workflow overview](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/how-it-works/) | The agent pipeline, reviews, and approval model          |
+| Prompt examples  | [Prompt guide](https://jonathan-vella.github.io/azure-agentic-infraops/guides/prompt-guide/)        | Reusable prompts for agents and common scenarios         |
+| Source repo      | [GitHub repository](https://github.com/jonathan-vella/azure-agentic-infraops)                       | The maintained upstream APEX codebase                    |
 
-This repository is a **GitHub Template** — not a fork.
+## Demo Flow
 
-1. Click **"Use this template"** → **"Create a new repository"** at the top of this page
-2. Choose an owner and name (e.g., `my-infraops-project`)
-3. Select **Public** or **Private**
-4. Click **Create repository**
+The live session focuses on a simple question: how do you get from a business requirement
+to governed, reviewable Azure infrastructure without losing rigor?
 
-> Your new repo has the same directory structure and files but a **clean commit history**
-> and no fork relationship. It is entirely yours.
+1. Start with a requirement prompt in GitHub Copilot Chat.
+2. Let APEX route that request through requirements, architecture, and governance analysis.
+3. Review the generated IaC plan and code outputs.
+4. Validate the result before any deployment decision is made.
+5. Finish with the documentation and artifact trail that operations teams actually need.
 
-### 2. Clone and Open in Dev Container
-
-```bash
-git clone https://github.com/YOUR-USERNAME/my-infraops-project.git
-cd my-infraops-project
-code .
-```
-
-When prompted by VS Code, click **"Reopen in Container"** (or run `Dev Containers: Reopen in Container`
-from the Command Palette). The container build takes 3-5 minutes and pre-installs:
-
-- Azure CLI with Bicep extension
-- Terraform CLI with TFLint
-- GitHub CLI (`gh`)
-- Node.js + npm (validation scripts)
-- Python 3 + pip (MCP server, diagram generation)
-- Go (Terraform MCP server)
-
-### 3. Initialize Your Repository
-
-After the dev container starts, run the initialization commands:
-
-```bash
-npm install
-npm run init
-npm run sync:workflows
-```
-
-**What these do:**
-
-| Command                  | Purpose                                                                                                                                                                                       |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm install`            | Install Node.js dependencies (validation scripts, linting)                                                                                                                                    |
-| `npm run init`           | **One-time setup** — replaces all references to the accelerator template repo with your repo's URL (auto-detected from git remote). Run `npm run init -- --dry-run` first to preview changes. |
-| `npm run sync:workflows` | Fetches the latest GitHub Actions workflows from the [upstream APEX project](https://github.com/jonathan-vella/azure-agentic-infraops) into your `.github/workflows/` directory                |
-
-After running, review and commit:
-
-```bash
-git diff
-git add -A && git commit -m "chore: initialize from template"
-```
-
-### 4. Authenticate (Optional)
-
-```bash
-# Required only for Step 6 (Deploy) and governance discovery
-az login
-```
-
----
-
-## Project Structure
-
-Once you are working in your repo, here is what lives where:
+## Repository Map
 
 ```text
-.github/
-  agents/              # Agent definitions (*.agent.md)
-    _subagents/        # Subagent definitions (non-user-invocable)
-  skills/              # Reusable domain knowledge (SKILL.md per skill)
-  instructions/        # File-type rules with glob-based auto-application
-  copilot-instructions.md  # VS Code Copilot-specific orchestration instructions
-  workflows/           # GitHub Actions (sync, CI, validation)
-agent-output/          # Generated artifacts organized by project
-  {project}/           # 01-requirements.md through 07-*.md
-infra/
-  bicep/{project}/     # Bicep templates (main.bicep + modules/)
-  terraform/{project}/ # Terraform configurations (main.tf + modules/)
-mcp/                   # MCP servers
-scripts/               # Validation scripts
-docs/                  # Documentation site source
+.github/            # Agents, skills, instructions, prompts, hooks, and workflows
+agent-output/       # Generated artifacts for each scenario or project
+infra/              # Bicep and Terraform outputs
+mcp/                # MCP servers used by the workflow
+scripts/            # Validation, sync, and demo support scripts
+site/               # Published documentation site source
+tests/              # Validation fixtures, prompts, and E2E inputs
 ```
 
-### What's Yours vs. What's Upstream
-
-| Your files (safe to edit, never overwritten by sync) | Upstream-managed files (overwritten by sync) |
-| ---------------------------------------------------- | -------------------------------------------- |
-| `agent-output/` — generated project artifacts        | `.github/agents/` — agent definitions        |
-| `infra/bicep/` — your Bicep templates                | `.github/skills/` — agent skills             |
-| `.github/workflows/` — your CI/CD workflows          | `.github/instructions/` — coding rules       |
-| `README.md` — your documentation                     | `.github/copilot-instructions.md`            |
-|                                                      | `scripts/`, `docs/`, `mcp/`, `package.json`  |
-|                                                      | `AGENTS.md`, `.devcontainer/`, `.vscode/`    |
-
-> **Note**: If you disable the sync workflow, everything becomes yours to edit freely.
-> See [Customization](#customization) below.
-
----
-
-## Customization
-
-### Changing defaults (regions, tags, naming)
-
-When you create from this template, **every file is yours**. The question is which
-approach gives you the best experience over time.
-
-**Strategy A: Edit directly** (simplest)
-
-Edit the file you need — for example, change `swedencentral` to `westeurope` in
-`.github/skills/azure-defaults/SKILL.md`. If you don't plan to pull upstream
-improvements, disable the sync workflow entirely (repo Settings → Actions → disable
-**Upstream Sync**) and manage the repo as your own.
-
-If you want upstream updates later, re-enable the workflow. The sync PR will overwrite
-your edited files with the upstream version (it is not a merge), so you'll need to
-re-apply your changes after merging. Keep a record of what you changed.
-
-**Strategy B: Keep sync enabled, layer your overrides** (recommended for teams that
-want continuous upstream improvements)
-
-The sync workflow overwrites all upstream-managed files but never touches the four
-excluded paths. To safely store overrides that survive sync:
-
-1. **Edit the sync exclusion list** — the sync workflow file itself is user-owned
-   (`.github/workflows/` is excluded from sync). Open
-   `.github/workflows/weekly-upstream-sync.yml` and add paths to `EXCLUDE_PATHS` and
-   the matching `for path in ...` loop:
-
-   ```yaml
-   EXCLUDE_PATHS: |
-     .github/workflows/
-     agent-output/
-     infra/bicep/
-     infra/terraform/
-     README.md
-     AGENTS.md
-   ```
-
-   Then add your overrides to root `AGENTS.md` — it will survive all future syncs.
-
-2. **Use `infra/bicep/AGENTS.md`** — since `infra/bicep/` is already excluded from
-   sync, you can place an `AGENTS.md` there with your organization defaults. VS Code
-   loads subfolder `AGENTS.md` files when working with files in that directory.
-
-3. **VS Code user-profile instructions** — place a `.instructions.md` file in your
-   VS Code profile's `prompts/` folder. This lives outside the repo entirely and
-   applies to all your workspaces.
-
-**Which strategy to pick?**
-
-| Approach                          | Best for                                        |
-| --------------------------------- | ----------------------------------------------- |
-| **A: Edit directly, skip sync**   | Solo users, teams that self-manage updates      |
-| **B: Layer overrides, keep sync** | Teams that want automatic upstream improvements |
-
-### Adding new agents or skills
-
-Agents are defined in `.github/agents/*.agent.md` and skills in
-`.github/skills/*/SKILL.md`. You can add new ones alongside the existing set.
-If you keep sync enabled, use distinctive names that won't collide with upstream
-filenames, or add your custom paths to the sync exclusion list.
-
----
-
-## IaC Tracks: Bicep and Terraform
-
-Both IaC tracks are fully supported. The Requirements agent (Step 1) captures your
-`iac_tool` preference, and the Conductor routes Steps 4-6 to the correct track.
-
-| Factor          | Bicep                           | Terraform                                |
-| --------------- | ------------------------------- | ---------------------------------------- |
-| **Azure-only**  | Native DSL, first-class support | Multi-cloud via AzureRM provider         |
-| **State**       | No state file (ARM-managed)     | State file (Azure Storage backend)       |
-| **AVM modules** | `br/public:avm/res/`            | `registry.terraform.io/Azure/avm-res-*/` |
-| **CI/CD**       | `az deployment group create`    | `terraform plan` + `terraform apply`     |
-
----
-
-## Multi-Project Support
-
-The accelerator is designed for **one repo containing multiple projects**. Each project
-gets its own folders:
-
-- `agent-output/{project}/` — artifacts (requirements, architecture, plans, docs)
-- `infra/bicep/{project}/` or `infra/terraform/{project}/` — IaC templates
-
-Agents, skills, instructions, and the dev container are shared across all projects.
-
-**One repo per project** is also valid when teams need separate governance or isolation.
-Each repo is created independently from the template.
-
-### Sharing customizations across repos or teams
-
-- **Edit the sync exclusion list** in each repo to protect `AGENTS.md`, then maintain a
-  standard overrides section that you copy into each repo
-- **VS Code user-profile instructions** — personal preferences that follow you across
-  repos without any per-repo setup
-- **Canonical overrides in a shared location** — maintain a standard overrides snippet
-  in a team wiki or internal repo and copy it when creating new instances
-
----
-
-## Keeping Up to Date
-
-| What                                        | How                                          | Frequency      |
-| ------------------------------------------- | -------------------------------------------- | -------------- |
-| Agents, skills, instructions, docs, scripts | Automated weekly PR (upstream sync workflow) | Weekly         |
-| GitHub Actions workflows                    | `npm run sync:workflows` (manual)            | As needed      |
-| All validations                             | `npm run validate:all`                       | Before each PR |
-
-The sync workflow opens a PR for human review — it never auto-merges. You can disable
-it entirely if you prefer to manage updates manually.
-
----
-
-## Validation & Quality
+## Explore This Workspace Locally
 
 ```bash
-# Run all code and documentation validations
-npm run validate:all
-
-# Fix markdown formatting
-npm run lint:md:fix
-
-# Bicep validation (replace {project})
-bicep build infra/bicep/{project}/main.bicep
-bicep lint infra/bicep/{project}/main.bicep
-
-# Terraform validation
-terraform fmt -check -recursive infra/terraform/
-cd infra/terraform/{project} && terraform init -backend=false && terraform validate
+git clone https://github.com/jonathan-vella/bmit-2026.git
+cd bmit-2026
+code .
+npm install
 ```
 
----
+Useful commands during or after the session:
 
-## Resources
+```bash
+# Run the full validation suite
+npm run validate:all
 
-- [APEX upstream project](https://github.com/jonathan-vella/azure-agentic-infraops)
-- [APEX documentation](https://jonathan-vella.github.io/azure-agentic-infraops/)
-- [MicroHack (hands-on exercises)](https://jonathan-vella.github.io/microhack-agentic-infraops/)
-- [Prompt Guide](https://github.com/jonathan-vella/azure-agentic-infraops/tree/main/docs/prompt-guide)
-- [FAQ](https://jonathan-vella.github.io/azure-agentic-infraops/faq/)
+# Start the documentation site locally
+npm run docs:dev
+
+# Validate the end-to-end demo artifacts
+npm run e2e:validate
+```
+
+## After the Session
+
+If you want to keep exploring APEX after the event, start here:
+
+- [APEX documentation site](https://jonathan-vella.github.io/azure-agentic-infraops/)
+- [APEX upstream repository](https://github.com/jonathan-vella/azure-agentic-infraops)
+- [APEX MicroHack](https://jonathan-vella.github.io/microhack-agentic-infraops/)
 
 ## License
 

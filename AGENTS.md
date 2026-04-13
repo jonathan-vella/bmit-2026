@@ -10,7 +10,7 @@ Specialized AI agents collaborate through a structured multi-step workflow:
 
 ```bash
 # Create your own repo from the Accelerator template:
-#   https://github.com/jonathan-vella/azure-agentic-infraops-accelerator
+#   https://github.com/jonathan-vella/bmit-2026
 # Then clone YOUR repo and open in dev container
 git clone https://github.com/YOUR-USERNAME/my-infraops-project.git
 cd my-infraops-project
