@@ -1,14 +1,14 @@
 <a id="top"></a>
 
-# Contributing to Agentic InfraOps
+# Contributing to APEX
 
-Thank you for your interest in contributing! Agentic InfraOps revolutionizes how IT Pros build
+Thank you for your interest in contributing! APEX helps IT Pros build
 Azure environments through coordinated AI agents.
 
 This file is the quick contributor entrypoint.
 The canonical, detailed contributor workflow (branch protection, PR flow, automation, versioning) is:
 
-- [Development Workflow Guide](docs/workflow.md)
+- [Development Workflow Guide](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/how-it-works/)
 
 ## 🎯 What We're Looking For
 
@@ -20,7 +20,7 @@ The canonical, detailed contributor workflow (branch protection, PR flow, automa
    - Additional validation checks
 
 2. **Documentation**
-   - Workflow improvements (`docs/workflow.md`)
+   - Workflow improvements (`concepts/how-it-works` on the published docs site)
    - Better examples and use cases
    - Troubleshooting guides
 
@@ -42,8 +42,8 @@ The canonical, detailed contributor workflow (branch protection, PR flow, automa
 This repo uses a protected `main` branch.
 Contributions land via pull requests with required checks and review.
 
-- Workflow details: [Development Workflow Guide](docs/workflow.md)
-- Agent workflow details: [Agent Workflow Reference](docs/workflow.md)
+- Workflow details: [Development Workflow Guide](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/how-it-works/)
+- Agent workflow details: [Agent Workflow Reference](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/how-it-works/)
 
 #### Branch Naming Convention
 
@@ -53,9 +53,9 @@ GitHub Actions CI.
 
 | Prefix          | Scope                                                        | Example                         |
 | --------------- | ------------------------------------------------------------ | ------------------------------- |
-| `docs/`         | Documentation (`docs/`, `site/`, `README.md`)                | `docs/update-workflow-guide`    |
-| `agents/`       | Agent definitions (`.github/agents/`, `agent-registry.json`) | `agents/improve-conductor`      |
-| `skills/`       | Skill files (`.github/skills/`, `skill-affinity.json`)       | `skills/add-tf-patterns`        |
+| `docs/`         | Documentation (`README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`) | `docs/update-contributing-guide` |
+| `agents/`       | Agent definitions (`.github/agents/`, `.github/agent-registry.json`) | `agents/improve-conductor` |
+| `skills/`       | Skill files (`.github/skills/`, `.github/skill-affinity.json`) | `skills/add-tf-patterns` |
 | `infra/`        | Infrastructure code (`infra/bicep/`, `infra/terraform/`)     | `infra/add-private-endpoints`   |
 | `scripts/`      | Validation scripts (`scripts/`, `package.json`)              | `scripts/fix-h2-sync`           |
 | `instructions/` | Instruction files (`.github/instructions/`)                  | `instructions/update-bicep`     |
@@ -81,7 +81,7 @@ narrow-scope branches.
 
 | Domain Prefix   | Allowed File Paths                                               |
 | --------------- | ---------------------------------------------------------------- |
-| `docs/`         | `docs/`, `site/`, `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md` |
+| `docs/`         | `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`                    |
 | `agents/`       | `.github/agents/`, `.github/agent-registry.json`                 |
 | `skills/`       | `.github/skills/`, `.github/skill-affinity.json`                 |
 | `infra/`        | `infra/`                                                         |
@@ -142,7 +142,7 @@ This repository uses [markdownlint](https://github.com/DavidAnson/markdownlint) 
 # Check for issues
 npm run lint:md
 
-# Check links (docs/ only)
+# Check repository markdown links
 npm run lint:links
 
 # Auto-fix issues
@@ -155,7 +155,7 @@ npm run lint:md:fix
 
 ### 1. Fork & Clone
 
-> **Note:** For **using** Agentic InfraOps, create your own repo from the
+> **Note:** For **using** APEX, create your own repo from the
 > [Accelerator template](https://github.com/jonathan-vella/bmit-2026)
 > instead. The instructions below are for contributing back to this upstream project.
 
@@ -186,14 +186,14 @@ git checkout -b docs/update-workflow-guide
 
 For the full local-to-PR flow, see:
 
-- [Development Workflow Guide](docs/workflow.md)
+- [Development Workflow Guide](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/how-it-works/)
 
 ### 4. Commit & Push
 
 ```bash
 git add .
 git commit -m "feat: add diagram generator improvements"
-git push origin feature/your-feature-name
+git push origin feat/your-feature-name
 ```
 
 Note: commit message format is enforced by hooks and CI.
@@ -275,6 +275,7 @@ doesn't follow the format, you'll see a helpful error with examples.
 2. Click "New Pull Request"
 3. Fill out the PR template
 4. Link related issues
+
 <div align="right"><a href="#top"><b>⬆️ Back to Top</b></a></div>
 
 ## 📝 Pull Request Checklist
@@ -289,6 +290,7 @@ Before submitting:
 - [ ] Terraform configs validate (`terraform validate` + `terraform fmt -check`) if applicable
 - [ ] No hardcoded secrets or subscription IDs
 - [ ] Links work correctly
+
 <div align="right"><a href="#top"><b>⬆️ Back to Top</b></a></div>
 
 ## 🤝 Community Standards
@@ -304,6 +306,7 @@ Before submitting:
 
 - **Questions**: GitHub Discussions
 - **Issues**: GitHub Issues
+
 <div align="right"><a href="#top"><b>⬆️ Back to Top</b></a></div>
 
 ## 📄 License
