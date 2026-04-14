@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "artifact_type": "requirements",
+    "pass_number": 1,
+    "lens": "comprehensive",
+    "overall_assessment": "NEEDS_REVISION",
+    "total_findings": 6,
+    "by_severity": {
+      "must_fix": 1,
+      "should_fix": 5,
+      "suggestion": 0
+    }
+  },
+  "findings": [
+    {
+      "id": "REQ-001",
+      "severity": "must_fix",
+      "title": "Table Storage recovery requirements are not implementable as written",
+      "waf_pillar": "Reliability",
+      "description": "Azure Table Storage does not provide built-in backup or point-in-time restore. The stated daily backup with manual restore is not natively supported.",
+      "recommendation": "Relax recovery expectation for demo scope, or require a custom export mechanism with realistic RTO/RPO, or switch persistence to a service with built-in backup.",
+      "location": "Non-Functional Requirements (NFRs); Backup & Disaster Recovery"
+    },
+    {
+      "id": "REQ-002",
+      "severity": "should_fix",
+      "title": "EU-only residency is not reconciled with open-ended social login",
+      "waf_pillar": "Security",
+      "description": "Social identity providers (Google, etc.) may process identity data outside the EU, creating a gap with the stated EU-only data residency requirement.",
+      "recommendation": "Clarify that EU residency applies to Azure-hosted data only. Name approved providers and record the compliance assumption for external identity processing.",
+      "location": "GDPR; Data Residency; Authentication & Authorization"
+    },
+    {
+      "id": "REQ-003",
+      "severity": "should_fix",
+      "title": "Right-to-erasure is not mapped to retained order data",
+      "waf_pillar": "Security",
+      "description": "GDPR right to erasure is required but data retention rules (90d PII, 1yr orders) do not specify if orders are anonymized or deleted on erasure request.",
+      "recommendation": "Define which fields are PII, whether retained orders are anonymized or deleted, and the deletion workflow.",
+      "location": "GDPR; Data Types"
+    },
+    {
+      "id": "REQ-004",
+      "severity": "should_fix",
+      "title": "Privileged staff and owner access is underspecified",
+      "waf_pillar": "Security",
+      "description": "Staff/owner roles lack a defined identity source or authorization model distinct from customer social login.",
+      "recommendation": "Specify identity source for staff (e.g. allowlisted emails) and how elevated roles are assigned.",
+      "location": "User Types; Authentication & Authorization"
+    },
+    {
+      "id": "REQ-005",
+      "severity": "should_fix",
+      "title": "Order status and staff visibility use unmeasurable 'real time' language",
+      "waf_pillar": "Performance",
+      "description": "'Real time' is not defined. Polling every 30s vs true push are materially different implementations.",
+      "recommendation": "Replace 'real time' with measurable behavior (e.g. max 30s polling interval acceptable for demo).",
+      "location": "Functional Requirements - Core Capabilities"
+    },
+    {
+      "id": "REQ-006",
+      "severity": "should_fix",
+      "title": "Network and policy assumptions are presented as settled facts",
+      "waf_pillar": "Operational Excellence",
+      "description": "Public endpoint and no-private-networking choices are stated as decisions, but governance discovery has not yet run.",
+      "recommendation": "Mark as provisional assumptions pending governance discovery in Step 3.5.",
+      "location": "Network Security; Complexity Classification"
+    }
+  ]
+}

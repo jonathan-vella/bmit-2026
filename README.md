@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 MD033 MD041 -->
 
-# APEX at The Perspectives 2026
+# APEX & Pastizzi at The Perspectives 2026
 
 <div align="center">
   <img
