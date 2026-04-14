@@ -3,8 +3,8 @@
 <div align="center">
 
 ![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=for-the-badge)
-![Step](https://img.shields.io/badge/Step-1%20of%207-blue?style=for-the-badge)
-![Cost](https://img.shields.io/badge/Est.%20Cost-TBD-lightgrey?style=for-the-badge)
+![Step](https://img.shields.io/badge/Step-3%20of%207-blue?style=for-the-badge)
+![Cost](https://img.shields.io/badge/Est.%20Cost-$24.53%2Fmo-green?style=for-the-badge)
 
 # 🏗️ Malta Catering
 
@@ -25,7 +25,7 @@
 | **Last Updated**   | 2026-04-14                    |
 | **Region**         | swedencentral                 |
 | **Environment**    | demo                          |
-| **Estimated Cost** | TBD during architecture/month |
+| **Estimated Cost** | ~$24.53/month                 |
 | **AVM Coverage**   | Targeted                      |
 
 ---
@@ -33,14 +33,14 @@
 ## ✅ Workflow Progress
 
 ```text
-[#.........] 14% Complete
+[##########] 43% Complete
 ```
 
 | Step | Phase          |                                    Status                                     | Artifact    |
 | :--: | -------------- | :---------------------------------------------------------------------------: | ----------- |
 |  1   | Requirements   |  ![Done](https://img.shields.io/badge/-Done-success?style=flat-square)        | [01-requirements.md](./01-requirements.md) |
-|  2   | Architecture   | ![Pending](https://img.shields.io/badge/-Pending-lightgrey?style=flat-square) | Pending     |
-|  3   | Design         | ![Pending](https://img.shields.io/badge/-Pending-lightgrey?style=flat-square) | Optional    |
+|  2   | Architecture   |  ![Done](https://img.shields.io/badge/-Done-success?style=flat-square)        | [02-architecture-assessment.md](./02-architecture-assessment.md) |
+|  3   | Design         |  ![Done](https://img.shields.io/badge/-Done-success?style=flat-square)        | [03-des-diagram.drawio](./03-des-diagram.drawio) · [ADR-0001](./03-des-adr-0001-container-apps-consumption-compute.md) · [ADR-0002](./03-des-adr-0002-table-storage-persistence.md) · [ADR-0003](./03-des-adr-0003-public-network-posture.md) |
 |  4   | Planning       | ![Pending](https://img.shields.io/badge/-Pending-lightgrey?style=flat-square) | Pending     |
 |  5   | Implementation | ![Pending](https://img.shields.io/badge/-Pending-lightgrey?style=flat-square) | Pending     |
 |  6   | Deployment     | ![Pending](https://img.shields.io/badge/-Pending-lightgrey?style=flat-square) | Pending     |
