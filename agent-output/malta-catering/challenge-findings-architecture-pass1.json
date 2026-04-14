@@ -1,0 +1,62 @@
+{
+  "challenged_artifact": "agent-output/malta-catering/02-architecture-assessment.md",
+  "artifact_type": "architecture",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "review_pass": 1,
+  "challenge_summary": "The architecture is directionally appropriate for a low-cost demo, but it overstates readiness in four places: recoverability is still unresolved, required application telemetry is missing, GDPR erasure is not designed into the data model, and key security/governance assumptions are treated as settled before governance discovery.",
+  "compact_for_parent": "Pass 1 (comprehensive) | HIGH | 1 must_fix, 4 should_fix | Key: Backup/RPO unresolved; App Insights omitted; GDPR erasure workflow missing",
+  "risk_level": "high",
+  "must_fix_count": 1,
+  "should_fix_count": 4,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "ARC-001",
+      "severity": "must_fix",
+      "title": "Table Storage backup gap is not actually resolved",
+      "waf_pillar": "Reliability",
+      "description": "The artifact says the Step 1 backup finding is addressed, but the chosen architecture still accepts no automated backup for Table Storage while earlier requirements still imply recoverability. LRS durability is not a backup strategy.",
+      "recommendation": "Either revise the demo recovery requirement explicitly, or make recoverability part of the baseline architecture with scheduled export/backup or a data store that supports restore."
+    },
+    {
+      "id": "ARC-002",
+      "severity": "should_fix",
+      "title": "Required application monitoring was dropped from the architecture",
+      "waf_pillar": "Operational Excellence",
+      "description": "The requirements call for Application Insights, but the architecture only includes Log Analytics. That leaves a gap in application-level telemetry and troubleshooting depth.",
+      "recommendation": "Add Application Insights to the architecture and handoff, or formally relax the requirement and justify a Log Analytics-only posture."
+    },
+    {
+      "id": "ARC-003",
+      "severity": "should_fix",
+      "title": "GDPR erasure is not mapped to the chosen data design",
+      "waf_pillar": "Security",
+      "description": "The architecture stores orders in Table Storage but does not define how customer PII is deleted or anonymized while preserving any retained business records.",
+      "recommendation": "Define a storage pattern and lifecycle for erasure now: separate PII from order facts and specify delete-versus-anonymize behavior."
+    },
+    {
+      "id": "ARC-004",
+      "severity": "should_fix",
+      "title": "Public-networking assumptions are treated as final before governance discovery",
+      "waf_pillar": "Security",
+      "description": "Public ingress and no-private-endpoint choices are handed to implementation as settled decisions even though governance discovery has not yet verified they are policy-compliant.",
+      "recommendation": "Mark these choices as provisional and add a fallback path for private endpoints and stricter network controls if governance requires them."
+    },
+    {
+      "id": "ARC-005",
+      "severity": "should_fix",
+      "title": "Privileged staff access is still an app-only control",
+      "waf_pillar": "Security",
+      "description": "Staff access relies on application-level allowlisting rather than an explicit architecture control or distinct trust boundary for privileged operations.",
+      "recommendation": "Define a stronger staff access design now: separate admin surface, verified role claims, and documented enforcement points beyond email allowlisting."
+    }
+  ],
+  "summary": {
+    "total_findings": 5,
+    "must_fix_count": 1,
+    "should_fix_count": 4,
+    "suggestion_count": 0,
+    "verdict": "NEEDS_REVISION"
+  }
+}

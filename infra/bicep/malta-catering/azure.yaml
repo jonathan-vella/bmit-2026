@@ -1,0 +1,25 @@
+name: malta-catering
+metadata:
+  template: malta-catering@0.0.1-beta
+infra:
+  provider: bicep
+  path: .
+hooks:
+  preprovision:
+    posix:
+      shell: sh
+      run: az account get-access-token --resource https://management.azure.com/ >/dev/null && echo "Validated ARM token for ${AZURE_ENV_NAME:-local} in ${AZURE_LOCATION:-swedencentral}."
+      interactive: false
+    windows:
+      shell: pwsh
+      run: az account get-access-token --resource https://management.azure.com/ | Out-Null; Write-Host "Validated ARM token for $env:AZURE_ENV_NAME in $env:AZURE_LOCATION."
+      interactive: false
+  postprovision:
+    posix:
+      shell: sh
+      run: az resource list --resource-group "${AZURE_RESOURCE_GROUP}" --query "[].{name:name,type:type}" -o table
+      interactive: false
+    windows:
+      shell: pwsh
+      run: az resource list --resource-group $env:AZURE_RESOURCE_GROUP --query "[].{name:name,type:type}" -o table
+      interactive: false

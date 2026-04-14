@@ -61,60 +61,60 @@ flowchart LR
 
 ### Core Capabilities
 
-| #   | Capability                    | Priority   | Acceptance Criteria                               |
-| --- | ----------------------------- | ---------- | ------------------------------------------------- |
-| 1   | Browse menu (pastizzi, drinks) | 🔴 Must    | Customer sees current menu with prices             |
-| 2   | Place an order with delivery  | 🔴 Must    | Customer submits name, address, items; gets confirmation |
-| 3   | View order status             | 🟡 Should  | Customer can check if order is being prepared      |
-| 4   | Social login (Google, etc.)   | 🟡 Should  | Customer authenticates via social identity provider |
-| 5   | Admin: view incoming orders   | 🔴 Must    | Outlet staff see new orders in real time           |
+| #   | Capability                     | Priority  | Acceptance Criteria                                      |
+| --- | ------------------------------ | --------- | -------------------------------------------------------- |
+| 1   | Browse menu (pastizzi, drinks) | 🔴 Must   | Customer sees current menu with prices                   |
+| 2   | Place an order with delivery   | 🔴 Must   | Customer submits name, address, items; gets confirmation |
+| 3   | View order status              | 🟡 Should | Customer can check if order is being prepared            |
+| 4   | Social login (Google, etc.)    | 🟡 Should | Customer authenticates via social identity provider      |
+| 5   | Admin: view incoming orders    | 🔴 Must   | Outlet staff see new orders in real time                 |
 
 ### User Types
 
-| User Type      | Description                              | Est. Count | Access Level |
-| -------------- | ---------------------------------------- | ---------- | ------------ |
-| Customer       | Orders food/drinks online                | 100-1,000  | Reader       |
-| Outlet Staff   | Views and fulfils incoming orders        | 1-5        | Contributor  |
-| Outlet Owner   | Manages menu, views sales                | 1          | Admin        |
+| User Type    | Description                       | Est. Count | Access Level |
+| ------------ | --------------------------------- | ---------- | ------------ |
+| Customer     | Orders food/drinks online         | 100-1,000  | Reader       |
+| Outlet Staff | Views and fulfils incoming orders | 1-5        | Contributor  |
+| Outlet Owner | Manages menu, views sales         | 1          | Admin        |
 
 ### Integrations
 
-| System                 | Direction | Protocol | Auth Method       | SLA  |
-| ---------------------- | --------- | -------- | ----------------- | ---- |
-| Social Identity Providers | Inbound   | OAuth 2.0 | OAuth / OIDC    | Best-effort |
+| System                    | Direction | Protocol  | Auth Method  | SLA         |
+| ------------------------- | --------- | --------- | ------------ | ----------- |
+| Social Identity Providers | Inbound   | OAuth 2.0 | OAuth / OIDC | Best-effort |
 
 ### Data Types
 
-| Category        | Sensitivity | Est. Volume     | Retention | Residency |
-| --------------- | ----------- | --------------- | --------- | --------- |
-| Customer PII    | 🟡 Medium   | < 10 KB/order   | 90 days   | EU        |
-| Order records   | 🟢 Low      | ~86K rows/day   | 1 year    | EU        |
-| Menu items      | 🟢 Low      | < 1 KB          | Indefinite | EU       |
+| Category      | Sensitivity | Est. Volume   | Retention  | Residency |
+| ------------- | ----------- | ------------- | ---------- | --------- |
+| Customer PII  | 🟡 Medium   | < 10 KB/order | 90 days    | EU        |
+| Order records | 🟢 Low      | ~86K rows/day | 1 year     | EU        |
+| Menu items    | 🟢 Low      | < 1 KB        | Indefinite | EU        |
 
 ### Architecture Pattern
 
-| Field              | Value                                                                 |
-| ------------------ | --------------------------------------------------------------------- |
-| Workload Pattern   | SPA + API (containerized React front-end with lightweight API)        |
-| Recommended Option | Container Apps Consumption + ACR + Table Storage + Key Vault          |
-| Tier               | Cost-Optimized                                                        |
+| Field              | Value                                                                  |
+| ------------------ | ---------------------------------------------------------------------- |
+| Workload Pattern   | SPA + API (containerized React front-end with lightweight API)         |
+| Recommended Option | Container Apps Consumption + ACR + Table Storage + Key Vault           |
+| Tier               | Cost-Optimized                                                         |
 | Justification      | Small outlet, low TPS (1/s), dev-only environment, budget < EUR 500/mo |
 
 ## ⚡ Non-Functional Requirements (NFRs)
 
-| WAF Pillar     | Metric             | Target           | Current | Gap |
-| -------------- | ------------------ | ---------------- | ------- | --- |
-| 🔄 Reliability | SLA                | 99.0%            | N/A     | —   |
-| 🔄 Reliability | RTO                | 24 hours         | N/A     | —   |
-| 🔄 Reliability | RPO                | 12 hours         | N/A     | —   |
-| ⚡ Performance | Page Load          | < 3,000 ms       | N/A     | —   |
-| ⚡ Performance | API Response (p95) | < 500 ms         | N/A     | —   |
-| ⚡ Performance | Concurrent Users   | 100-1,000        | N/A     | —   |
-| ⚡ Performance | Throughput         | 1 TPS            | N/A     | —   |
-| 🔒 Security    | Auth Method        | Social IdP (OAuth 2.0) | —  | —   |
-| 🔒 Security    | Encryption         | TLS 1.2 in-transit; platform-managed at-rest | — | — |
-| 💰 Cost        | Monthly Budget     | EUR 100-500      | —       | —   |
-| 🔧 Operations  | Uptime Monitoring  | Yes (basic)      | —       | —   |
+| WAF Pillar     | Metric             | Target                                       | Current | Gap |
+| -------------- | ------------------ | -------------------------------------------- | ------- | --- |
+| 🔄 Reliability | SLA                | 99.0%                                        | N/A     | —   |
+| 🔄 Reliability | RTO                | 24 hours                                     | N/A     | —   |
+| 🔄 Reliability | RPO                | 12 hours                                     | N/A     | —   |
+| ⚡ Performance | Page Load          | < 3,000 ms                                   | N/A     | —   |
+| ⚡ Performance | API Response (p95) | < 500 ms                                     | N/A     | —   |
+| ⚡ Performance | Concurrent Users   | 100-1,000                                    | N/A     | —   |
+| ⚡ Performance | Throughput         | 1 TPS                                        | N/A     | —   |
+| 🔒 Security    | Auth Method        | Social IdP (OAuth 2.0)                       | —       | —   |
+| 🔒 Security    | Encryption         | TLS 1.2 in-transit; platform-managed at-rest | —       | —   |
+| 💰 Cost        | Monthly Budget     | EUR 100-500                                  | —       | —   |
+| 🔧 Operations  | Uptime Monitoring  | Yes (basic)                                  | —       | —   |
 
 ### Scalability
 
@@ -131,11 +131,11 @@ flowchart LR
 <details>
 <summary><strong>PCI-DSS</strong> — Not Applicable</summary>
 
-| Requirement             | Applicability | Notes                                        |
-| ----------------------- | ------------- | -------------------------------------------- |
-| Cardholder data storage | No            | Payment is strictly cash on delivery         |
-| Network segmentation    | No            | No card data in scope                        |
-| Encryption requirements | No            | No payment card processing                   |
+| Requirement             | Applicability | Notes                                |
+| ----------------------- | ------------- | ------------------------------------ |
+| Cardholder data storage | No            | Payment is strictly cash on delivery |
+| Network segmentation    | No            | No card data in scope                |
+| Encryption requirements | No            | No payment card processing           |
 
 </details>
 
@@ -153,22 +153,22 @@ flowchart LR
 <details>
 <summary><strong>HIPAA</strong> — Not Applicable</summary>
 
-| Requirement   | Applicability | Notes                    |
-| ------------- | ------------- | ------------------------ |
-| PHI handling  | No            | No health data           |
-| BAA required  | No            | Not a healthcare app     |
-| Audit logging | No            | Not required for HIPAA   |
+| Requirement   | Applicability | Notes                  |
+| ------------- | ------------- | ---------------------- |
+| PHI handling  | No            | No health data         |
+| BAA required  | No            | Not a healthcare app   |
+| Audit logging | No            | Not required for HIPAA |
 
 </details>
 
 <details>
 <summary><strong>GDPR</strong> — Applicable</summary>
 
-| Requirement      | Applicability | Notes                                              |
-| ---------------- | ------------- | -------------------------------------------------- |
-| EU data subjects | Yes           | Malta-based customers (EU citizens)                |
-| Data residency   | Yes           | All data stored in swedencentral (EU)              |
-| Right to erasure | Yes           | Must support deletion of customer PII on request   |
+| Requirement      | Applicability | Notes                                            |
+| ---------------- | ------------- | ------------------------------------------------ |
+| EU data subjects | Yes           | Malta-based customers (EU citizens)              |
+| Data residency   | Yes           | All data stored in swedencentral (EU)            |
+| Right to erasure | Yes           | Must support deletion of customer PII on request |
 
 </details>
 
@@ -185,11 +185,11 @@ flowchart LR
 
 ### Data Residency
 
-| Requirement              | Value                     |
-| ------------------------ | ------------------------- |
-| Primary Region           | swedencentral             |
-| Data Sovereignty         | EU-only                   |
-| Cross-region Replication | Not required              |
+| Requirement              | Value         |
+| ------------------------ | ------------- |
+| Primary Region           | swedencentral |
+| Data Sovereignty         | EU-only       |
+| Cross-region Replication | Not required  |
 
 ### Authentication & Authorization
 
@@ -201,17 +201,17 @@ flowchart LR
 
 ### Network Security
 
-| Control                     | Required | Notes                                     |
-| --------------------------- | -------- | ----------------------------------------- |
-| Private endpoints           | ❌       | Not needed for cost-optimized dev          |
-| VNet integration            | ❌       | Adds cost; not justified at this scale     |
-| Public endpoints acceptable | ✅       | Container Apps ingress is public           |
-| WAF required                | ❌       | Not justified for < 1K concurrent users    |
+| Control                     | Required | Notes                                   |
+| --------------------------- | -------- | --------------------------------------- |
+| Private endpoints           | ❌       | Not needed for cost-optimized dev       |
+| VNet integration            | ❌       | Adds cost; not justified at this scale  |
+| Public endpoints acceptable | ✅       | Container Apps ingress is public        |
+| WAF required                | ❌       | Not justified for < 1K concurrent users |
 
 ### Recommended Security Controls
 
-| Control               | Recommended | User Confirmed | Notes                                         |
-| --------------------- | ----------- | -------------- | --------------------------------------------- |
+| Control               | Recommended | User Confirmed | Notes                                          |
+| --------------------- | ----------- | -------------- | ---------------------------------------------- |
 | Managed Identity      | Yes         | Yes            | Container Apps to Key Vault and Storage        |
 | Private Endpoints     | No          | No             | Cost-optimized tier; public endpoints accepted |
 | WAF                   | No          | No             | Low traffic; not cost-justified                |
@@ -227,12 +227,12 @@ flowchart LR
 > The Azure Pricing MCP server generates detailed cost estimates during
 > architecture assessment (Step 2). Provide an approximate budget here.
 
-| Field              | Value                                 |
-| ------------------ | ------------------------------------- |
-| 💰 Monthly Budget  | EUR 100-500                           |
-| 📅 Annual Budget   | EUR 1,200-6,000                       |
-| 🚦 Limit Type      | 🟡 Soft (can negotiate within range)  |
-| 📊 Cost Model Pref | Consumption (pay-per-use preferred)   |
+| Field              | Value                                |
+| ------------------ | ------------------------------------ |
+| 💰 Monthly Budget  | EUR 100-500                          |
+| 📅 Annual Budget   | EUR 1,200-6,000                      |
+| 🚦 Limit Type      | 🟡 Soft (can negotiate within range) |
+| 📊 Cost Model Pref | Consumption (pay-per-use preferred)  |
 
 ### Cost Optimization Priorities
 
@@ -256,12 +256,12 @@ flowchart LR
 
 ### Support & Maintenance
 
-| Requirement         | Value                     |
-| ------------------- | ------------------------- |
-| Support Hours       | Best-effort               |
-| On-call Requirement | No                        |
-| Maintenance Windows | Any time (dev env)        |
-| Change Management   | Self-service              |
+| Requirement         | Value              |
+| ------------------- | ------------------ |
+| Support Hours       | Best-effort        |
+| On-call Requirement | No                 |
+| Maintenance Windows | Any time (dev env) |
+| Change Management   | Self-service       |
 
 ### Backup & Disaster Recovery
 
@@ -272,21 +272,21 @@ flowchart LR
 
 ## 🌍 Regional Preferences
 
-| Preference         | Value           | Justification                    |
-| ------------------ | --------------- | -------------------------------- |
-| Primary Region     | swedencentral   | EU GDPR-compliant, project default |
-| Failover Region    | N/A             | Not required for dev/demo        |
-| Availability Zones | Not needed      | 99.0% SLA target; single zone OK |
+| Preference         | Value         | Justification                      |
+| ------------------ | ------------- | ---------------------------------- |
+| Primary Region     | swedencentral | EU GDPR-compliant, project default |
+| Failover Region    | N/A           | Not required for dev/demo          |
+| Availability Zones | Not needed    | 99.0% SLA target; single zone OK   |
 
 ---
 
 ## 📊 Complexity Classification
 
-| Field      | Value                                                                          |
-| ---------- | ------------------------------------------------------------------------------ |
-| Complexity | `simple`                                                                       |
+| Field      | Value                                                                               |
+| ---------- | ----------------------------------------------------------------------------------- |
+| Complexity | `simple`                                                                            |
 | Criteria   | 4 resource types (Container Apps, ACR, Storage, Key Vault), single region, dev only |
-| Rationale  | Small outlet, single environment, no custom policies, straightforward SPA + API  |
+| Rationale  | Small outlet, single environment, no custom policies, straightforward SPA + API     |
 
 ---
 
@@ -294,24 +294,24 @@ flowchart LR
 
 ### Handoff Summary
 
-| Aspect               | Key Points                                                                 |
-| -------------------- | -------------------------------------------------------------------------- |
-| Critical Constraints | GDPR data residency (EU-only); budget EUR 100-500/mo; payment on delivery |
-| Key Decisions        | SPA + API on Container Apps; Table Storage for orders; Bicep IaC; social auth |
+| Aspect               | Key Points                                                                      |
+| -------------------- | ------------------------------------------------------------------------------- |
+| Critical Constraints | GDPR data residency (EU-only); budget EUR 100-500/mo; payment on delivery       |
+| Key Decisions        | SPA + API on Container Apps; Table Storage for orders; Bicep IaC; social auth   |
 | Open Risks           | Social IdP setup adds complexity; Table Storage query limitations for reporting |
-| Recommended Pattern  | SPA + API (Container Apps Consumption)                                     |
-| Budget Envelope      | EUR 100-500/month                                                          |
+| Recommended Pattern  | SPA + API (Container Apps Consumption)                                          |
+| Budget Envelope      | EUR 100-500/month                                                               |
 
 ### Requirements Completeness
 
-| Section                  | Status | Notes                                  |
-| ------------------------ | ------ | -------------------------------------- |
-| Project Overview         | ✅     | Complete                               |
-| Functional Requirements  | ✅     | Core ordering flow defined             |
+| Section                  | Status | Notes                                 |
+| ------------------------ | ------ | ------------------------------------- |
+| Project Overview         | ✅     | Complete                              |
+| Functional Requirements  | ✅     | Core ordering flow defined            |
 | NFRs                     | ✅     | 1 TPS, 99.0% SLA, relaxed recovery    |
 | Compliance & Security    | ✅     | GDPR applicable; PCI/SOC/HIPAA not    |
-| Budget                   | ✅     | EUR 100-500/month soft limit           |
-| Operational Requirements | ✅     | Basic monitoring; best-effort support  |
+| Budget                   | ✅     | EUR 100-500/month soft limit          |
+| Operational Requirements | ✅     | Basic monitoring; best-effort support |
 
 ---
 

@@ -4,22 +4,102 @@
   "iac_tool": "Bicep",
   "region": "swedencentral",
   "branch": "main",
-  "updated": "2026-04-14T10:00:00Z",
-  "current_step": 4,
+  "updated": "2026-04-14T17:32:00Z",
+  "current_step": 6,
   "decisions": {
     "region": "swedencentral",
     "compliance": "GDPR",
     "budget": "EUR 100-500/month",
     "architecture_pattern": "SPA + API (Container Apps Consumption)",
-    "deployment_strategy": "TBD",
+    "deployment_strategy": "Phased",
     "complexity": "simple"
   },
-  "open_findings": [],
+  "open_findings": [
+    {
+      "type": "deployment_error",
+      "step": 6,
+      "resource": "cae-malta-catering-dev",
+      "error_code": "ManagedEnvironmentCapacityHeavyUsageError",
+      "message": "Creating a free tier cluster is unavailable at this time in region swedencentral.",
+      "recommended_actions": [
+        "Switch the Container Apps environment to a paid workload profile in swedencentral",
+        "Or move the deployment to germanywestcentral and rerun Step 6"
+      ],
+      "timestamp": "2026-04-14T17:32:00Z"
+    }
+  ],
   "decision_log": [
     {
+      "id": "D001",
       "timestamp": "2026-04-14T09:40:37Z",
-      "step": 0,
-      "decision": "Initialized project workflow for a live demo with max one adversarial review in Steps 1 and 2."
+      "step": 1,
+      "agent": "Orchestrator",
+      "title": "Initialize Workflow Guardrails",
+      "choice": "Start the Malta Catering workflow with a simple-complexity review budget.",
+      "rationale": "The project is a live demo with a narrow scope, so one adversarial pass in the early design stages is sufficient while keeping the workflow fast."
+    },
+    {
+      "id": "D002",
+      "timestamp": "2026-04-14T14:38:32Z",
+      "step": 4,
+      "agent": "04g-Governance",
+      "title": "Record Governance Discovery Outcome",
+      "choice": "Carry forward resource-group tag enforcement as the only hard blocker.",
+      "rationale": "Azure Policy discovery showed the deny condition was on resource-group tags, while the storage and Key Vault network posture stayed advisory for this scope."
+    },
+    {
+      "id": "D003",
+      "timestamp": "2026-04-14T14:40:40Z",
+      "step": 4,
+      "agent": "04g-Governance",
+      "title": "Approve Governance Gate",
+      "choice": "Complete governance with the tag-compliance blocker handed to planning and code generation.",
+      "rationale": "The blocker was actionable in deployment orchestration, so the workflow could proceed without reopening architecture."
+    },
+    {
+      "id": "D004",
+      "timestamp": "2026-04-14T15:08:00Z",
+      "step": 4,
+      "agent": "05-IaC Planner",
+      "title": "Select Phased Deployment Strategy",
+      "choice": "Implement the solution in four phases with AVM coverage for all planned Azure resources and native Bicep for budgeting.",
+      "rationale": "Phasing keeps dependencies explicit, simplifies rollback during demo setup, and fits the simple-complexity review profile."
+    },
+    {
+      "id": "D005",
+      "timestamp": "2026-04-14T16:05:00Z",
+      "step": 5,
+      "agent": "06b-Bicep CodeGen",
+      "title": "Clear Step 5 Preflight",
+      "choice": "Proceed with Bicep generation using verified AVM contracts and deployment-time resource-group tagging.",
+      "rationale": "Preflight confirmed full AVM coverage, identified the zone redundancy and ACR SKU caveats, and established deploy.ps1 as the right place to satisfy the resource-group tag deny policy."
+    },
+    {
+      "id": "D006",
+      "timestamp": "2026-04-14T16:35:00Z",
+      "step": 5,
+      "agent": "06b-Bicep CodeGen",
+      "title": "Complete Step 5 Validation",
+      "choice": "Mark the Bicep scaffold complete after build, lint, security-baseline, and artifact validation passed.",
+      "rationale": "The remaining compiler output is limited to upstream AVM Container Apps preview-type metadata warnings, not local code or policy defects."
+    },
+    {
+      "id": "D007",
+      "timestamp": "2026-04-14T17:32:00Z",
+      "step": 6,
+      "agent": "07b-Bicep Deploy",
+      "title": "Block Step 6 On ACA Regional Capacity",
+      "choice": "Stop deployment after the Container Apps environment failed in swedencentral with ManagedEnvironmentCapacityHeavyUsageError.",
+      "rationale": "Azure explicitly recommended either an alternate region or a paid tier cluster. The current Bicep templates deploy the default serverless environment, so recovery requires a Step 5 IaC change before deploy can continue safely."
+    },
+    {
+      "id": "D008",
+      "timestamp": "2026-04-14T17:34:00Z",
+      "step": 6,
+      "agent": "07b-Bicep Deploy",
+      "title": "Select Paid ACA Recovery Path",
+      "choice": "Use a paid Azure Container Apps workload profile in swedencentral instead of changing regions.",
+      "rationale": "The user selected the paid-tier recovery option, and swedencentral supports dedicated workload profiles. The next action is a Step 5 Bicep revision, not another Step 6 retry against the current consumption environment."
     }
   ],
   "review_audit": {
@@ -41,34 +121,34 @@
     },
     "step_3_5": {
       "complexity": "simple",
-      "passes_planned": 0,
-      "passes_executed": 0,
+      "passes_planned": 1,
+      "passes_executed": 1,
       "skipped": [],
       "skip_reasons": [],
-      "models_used": []
+      "models_used": ["challenger-review-subagent"]
     },
     "step_4": {
       "complexity": "simple",
       "passes_planned": 0,
       "passes_executed": 0,
-      "skipped": [],
-      "skip_reasons": [],
+      "skipped": ["comprehensive"],
+      "skip_reasons": ["simple complexity: challenger review opt-in only at Step 4"],
       "models_used": []
     },
     "step_5": {
       "complexity": "simple",
       "passes_planned": 0,
       "passes_executed": 0,
-      "skipped": [],
-      "skip_reasons": [],
+      "skipped": ["comprehensive"],
+      "skip_reasons": ["simple complexity: challenger review opt-in only at Step 5"],
       "models_used": []
     },
     "step_6": {
       "complexity": "simple",
       "passes_planned": 0,
       "passes_executed": 0,
-      "skipped": [],
-      "skip_reasons": [],
+      "skipped": ["comprehensive"],
+      "skip_reasons": ["simple complexity: challenger review opt-in only at Step 6"],
       "models_used": []
     }
   },
@@ -121,41 +201,78 @@
     "3_5": {
       "name": "Governance",
       "agent": "04g-Governance",
-      "status": "pending",
+      "status": "complete",
       "sub_step": null,
-      "started": null,
-      "completed": null,
-      "artifacts": [],
-      "context_files_used": []
+      "started": "2026-04-14T11:10:00Z",
+      "completed": "2026-04-14T14:40:40Z",
+      "artifacts": [
+        "04-governance-constraints.md",
+        "04-governance-constraints.json",
+        "challenge-findings-governance-constraints-pass1.json"
+      ],
+      "context_files_used": [
+        "00-session-state.json",
+        "02-architecture-assessment.md",
+        "04-governance-constraints.md",
+        "04-governance-constraints.json"
+      ]
     },
     "4": {
       "name": "IaC Plan",
       "agent": "05-IaC Planner",
-      "status": "pending",
+      "status": "complete",
       "sub_step": null,
-      "started": null,
-      "completed": null,
-      "artifacts": [],
-      "context_files_used": []
+      "started": "2026-04-14T15:00:00Z",
+      "completed": "2026-04-14T15:15:00Z",
+      "artifacts": ["04-implementation-plan.md", "04-dependency-diagram.py", "04-dependency-diagram.png", "04-runtime-diagram.py", "04-runtime-diagram.png"],
+      "context_files_used": [
+        "00-session-state.json",
+        "02-architecture-assessment.md",
+        "04-governance-constraints.json"
+      ]
     },
     "5": {
       "name": "IaC Code",
-      "agent": "",
-      "status": "pending",
+      "agent": "06b-Bicep CodeGen",
+      "status": "complete",
       "sub_step": null,
-      "started": null,
-      "completed": null,
-      "artifacts": [],
-      "context_files_used": []
+      "started": "2026-04-14T16:05:00Z",
+      "completed": "2026-04-14T16:35:00Z",
+      "artifacts": [
+        "04-preflight-check.md",
+        "05-implementation-reference.md",
+        "infra/bicep/malta-catering/main.bicep",
+        "infra/bicep/malta-catering/main.bicepparam",
+        "infra/bicep/malta-catering/azure.yaml",
+        "infra/bicep/malta-catering/deploy.ps1",
+        "infra/bicep/malta-catering/modules/app-insights.bicep",
+        "infra/bicep/malta-catering/modules/budget.bicep",
+        "infra/bicep/malta-catering/modules/container-app.bicep",
+        "infra/bicep/malta-catering/modules/container-apps-env.bicep",
+        "infra/bicep/malta-catering/modules/container-registry.bicep",
+        "infra/bicep/malta-catering/modules/key-vault.bicep",
+        "infra/bicep/malta-catering/modules/log-analytics.bicep",
+        "infra/bicep/malta-catering/modules/storage.bicep"
+      ],
+      "context_files_used": [
+        "00-session-state.json",
+        "01-requirements.md",
+        "02-architecture-assessment.md",
+        "04-governance-constraints.md",
+        "04-governance-constraints.json",
+        "04-implementation-plan.md"
+      ]
     },
     "6": {
       "name": "Deploy",
-      "agent": "",
-      "status": "pending",
-      "sub_step": null,
-      "started": null,
+      "agent": "07b-Bicep Deploy",
+      "status": "in_progress",
+      "sub_step": "phase_3_deploy",
+      "started": "2026-04-14T17:05:00Z",
       "completed": null,
-      "artifacts": [],
+      "artifacts": [
+        "06-deployment-summary.md"
+      ],
       "context_files_used": []
     },
     "7": {

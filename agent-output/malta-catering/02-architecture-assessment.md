@@ -63,6 +63,7 @@ flowchart TB
     ST --> TBL[("📋 Table Storage<br/>Orders & Menu")]
     ACR["📦 Container Registry<br/>Basic"] -->|Image Pull| CA
     CA -->|Auto| LA["📊 Log Analytics<br/>Free tier"]
+    CA -->|Telemetry| AI["📈 Application Insights<br/>Free tier"]
 
     subgraph Security
         KV
@@ -75,6 +76,7 @@ flowchart TB
 
     subgraph Observability
         LA
+        AI
     end
 ```
 
@@ -93,8 +95,9 @@ flowchart TB
 | 🔧 Operational Excellence | 6/10  | Medium     | Built-in logging; no CI/CD or alerting yet       |
 
 **Primary Pillar Optimized**: 💰 Cost Optimization
-**Trade-offs Accepted**: No private endpoints, no WAF, no multi-region,
-no automated backup — all appropriate for a dev/demo with 99.0% SLA target.
+**Trade-offs Accepted**: No private endpoints (**provisional** — ARC-004),
+no WAF, no multi-region. Data loss explicitly accepted for demo (ARC-001).
+GDPR erasure pattern defined (ARC-003). Staff access via Entra ID (ARC-005).
 
 ![WAF Pillar Scores](./02-waf-scores.png)
 
@@ -113,17 +116,49 @@ no automated backup — all appropriate for a dev/demo with 99.0% SLA target.
 
 **Gaps:**
 
-- ⚠️ Public ingress endpoint (no private endpoints) — acceptable for dev budget
-- ⚠️ No WAF/DDoS protection — low traffic does not justify cost
+- ⚠️ Public ingress endpoint (no private endpoints) — **provisional**, pending governance discovery (ARC-004)
+- ⚠️ No WAF/DDoS protection — low traffic does not justify cost; **provisional** pending governance
 - ⚠️ Social IdP data processing may cross EU boundaries (noted in REQ-002)
-- ⚠️ Staff authentication is application-level (allowlisted emails) rather than Entra ID
+- ⚠️ Staff authentication requires a dedicated trust boundary (ARC-005 — see below)
+
+**GDPR Data Erasure Pattern (ARC-003):**
+
+Table Storage entities must separate PII from order facts to support right-to-erasure:
+
+| Partition          | Row Key    | Contains PII | Erasure Action              |
+| ------------------ | ---------- | ------------ | --------------------------- |
+| `customer_{id}`    | `profile`  | Yes          | Delete entire entity        |
+| `order_{date}`     | `{orderId}`| No (anonymized) | Retain (customer_id → hash) |
+
+On erasure request: delete `customer_*` entities, replace `customer_id` with
+a one-way hash in order entities. Orders are retained for business records
+with no reversible PII.
+
+**Staff Access Trust Boundary (ARC-005):**
+
+Staff operations (view orders, update status) must use a separate
+authentication path with verified role claims:
+
+1. Staff authenticate via Microsoft Entra ID (work accounts) —
+   separate from customer social login
+2. Container Apps built-in auth validates `roles` claim in the JWT
+3. API enforces role-based access at the route level (`/api/staff/*`
+   requires `Staff` role)
+4. Customer routes (`/api/orders`) require only a valid social IdP token
+
+This creates two trust boundaries: customers (social IdP, low privilege)
+and staff (Entra ID, elevated privilege).
 
 **Recommendations:**
 
 1. Use Container Apps built-in authentication for social login (zero-cost)
-2. For production: add private endpoints for Storage and Key Vault
+2. For production: add private endpoints for Storage and Key Vault.
+   **Fallback architecture** if governance requires private endpoints:
+   add VNet integration + PE for Storage ($7.30/mo) and Key Vault ($7.30/mo)
 3. Document that social IdP identity tokens are processed by the IdP outside EU;
    only application data stays in swedencentral
+4. **Provisional items** (ARC-004): public ingress, no PE, no WAF are accepted
+   for dev/demo but must be revalidated after governance discovery (Step 3.5)
 
 ### 🔄 Reliability Assessment (6/10)
 
@@ -137,16 +172,27 @@ no automated backup — all appropriate for a dev/demo with 99.0% SLA target.
 
 **Gaps:**
 
-- ⚠️ No automated backup for Table Storage (REQ-001 finding)
+- ❌ No automated backup for Table Storage (REQ-001/ARC-001) — **explicitly accepted for demo** (see below)
 - ⚠️ No failover region configured
 - ⚠️ Default 0-1 replica range — cold start on scale-from-zero (~2-5s)
 
+**ARC-001 Resolution — Table Storage Backup:**
+
+> **Decision**: For this dev/demo environment, data loss is **explicitly accepted**.
+> The 12h RPO requirement from Step 1 is **relaxed to best-effort** for the demo.
+> Table Storage LRS provides 11 nines durability against hardware failure but
+> does **not** protect against accidental deletion or application-level corruption.
+>
+> **Production path**: Before promoting to production, add a scheduled Azure
+> Function (timer trigger, daily) that exports all Table Storage entities to
+> Blob Storage as JSON. Estimated additional cost: ~$1-2/month.
+
 **Recommendations:**
 
-1. Accept Table Storage backup risk for demo. For production: schedule an
-   Azure Function to export table entities to blob storage daily
-2. Set minimum replicas to 1 during business hours to avoid cold starts
-3. For production: consider GRS storage or Cosmos DB for geo-redundancy
+1. ✅ Demo: accept data loss risk (RPO relaxed to best-effort)
+2. ⚠️ Production: implement daily export job before go-live
+3. Set minimum replicas to 1 during business hours to avoid cold starts
+4. For production: consider GRS storage or Cosmos DB for geo-redundancy
 
 ### ⚡ Performance Assessment (8/10)
 
@@ -203,11 +249,23 @@ no automated backup — all appropriate for a dev/demo with 99.0% SLA target.
 - ⚠️ No runbook automation for incident response
 - ⚠️ Best-effort support model (no SLA for operational response)
 
+**ARC-002 Resolution — Application Monitoring:**
+
+Application Insights is added to the architecture (free tier, 5 GiB/month).
+This addresses the monitoring gap identified in the requirements:
+
+- Application Insights provides request timing, dependency tracing, and
+  application-level failure diagnostics (beyond container platform logs)
+- Auto-instrumentation via Container Apps managed environment
+- Free tier (5 GiB/month) is sufficient for demo traffic
+- Shares the same Log Analytics workspace as the backend
+
 **Recommendations:**
 
 1. Define a GitHub Actions workflow for CI/CD in a later phase
 2. Add basic Azure Monitor alerts for 5xx errors and high latency
 3. Document a simple operational runbook for container restart procedures
+4. Configure Application Insights connection string via Key Vault
 
 ---
 
@@ -271,8 +329,11 @@ EU-only requirement satisfied (no cross-region replication).
 | Image registry            | ACR Basic                         | 10 GiB included, $5/mo, sufficient for single app |
 | Secrets management        | Key Vault Standard                | Managed Identity integration, per-op pricing      |
 | Authentication            | Container Apps Built-in Auth      | Zero-cost social IdP integration (Google, MS)     |
-| Monitoring                | Log Analytics (free tier)         | Auto-configured with Container Apps               |
-| Backup strategy           | Accept risk for demo              | Table Storage has no native backup; prod needs export job |
+| Monitoring                | Log Analytics + Application Insights (free tier) | Auto-configured with Container Apps; App Insights for app telemetry |
+| Backup strategy           | Explicitly accept data loss for demo (ARC-001) | RPO relaxed to best-effort; prod: add daily export job |
+| GDPR erasure              | PII/order separation in Table Storage (ARC-003) | customer_* entities deletable; orders anonymized |
+| Staff access              | Entra ID with role claims (ARC-005) | Separate trust boundary from customer social auth |
+| Network posture           | Public endpoints — **provisional** (ARC-004) | Revalidate after governance discovery (Step 3.5) |
 | Region                    | swedencentral                     | EU GDPR-compliant, project default                |
 | IaC tool                  | Bicep                             | Azure-native, AVM modules available for all services |
 
@@ -298,7 +359,7 @@ The architecture is approved for implementation with the following key parameter
 | Region         | swedencentral                  |
 | Environment    | dev                            |
 | Budget         | EUR 100-500/month (est: ~$25)  |
-| Resource Count | 6                              |
+| Resource Count | 7                              |
 
 ### Resources to Provision
 
@@ -310,6 +371,7 @@ The architecture is approved for implementation with the following key parameter
 | 4   | Storage Account            | Standard LRS GPv2  | Table service enabled, HTTPS-only, TLS 1.2 |
 | 5   | Key Vault                  | Standard           | RBAC auth, purge protection enabled     |
 | 6   | Log Analytics Workspace    | Per-GB             | 30-day retention (free tier)            |
+| 7   | Application Insights       | Free tier          | Connected to Log Analytics workspace    |
 
 ### Security Requirements for Implementation
 
@@ -325,11 +387,12 @@ The architecture is approved for implementation with the following key parameter
 
 ### Monitoring Requirements for Implementation
 
-| Requirement            | Implementation                                  |
-| ---------------------- | ----------------------------------------------- |
-| Log aggregation        | Log Analytics Workspace auto-linked to Container Apps Env |
-| Container app logs     | System and app logs to Log Analytics            |
-| Basic health monitoring | Container Apps built-in health probes          |
+| Requirement             | Implementation                                  |
+| ----------------------- | ----------------------------------------------- |
+| Log aggregation         | Log Analytics Workspace auto-linked to Container Apps Env |
+| Container app logs      | System and app logs to Log Analytics            |
+| Application telemetry   | Application Insights for request tracing, dependency monitoring (ARC-002) |
+| Basic health monitoring | Container Apps built-in health probes           |
 
 ---
 

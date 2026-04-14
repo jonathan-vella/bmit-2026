@@ -63,6 +63,21 @@ to governed, reviewable Azure infrastructure without losing rigor?
 4. Validate the result before any deployment decision is made.
 5. Finish with the documentation and artifact trail that operations teams actually need.
 
+### Starter Prompt
+
+Open GitHub Copilot Chat, select the **Orchestrator** agent, and paste:
+
+> **Context:**
+> This is a live 30min demo, so we have to keep things short.
+> At max 1 adversarial review during requirements & architect phases.
+
+> **What I want to build:**
+> The owner of a catering outlet based in Malta (Europe) wants to host an online ordering app in Azure.
+> The app is a simple containerized application with React. We can use table storage for persistence. Unless you can think of something better.
+> The app will process online orders for pastizzi, Cisk, and Kinnie.
+> Payment is strictly on delivery.
+> Expectation is 1 transaction per sec.
+
 ## Repository Map
 
 ```text

@@ -1,0 +1,34 @@
+{
+  "project": "malta-catering",
+  "artifact_type": "governance",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "artifact_path": "/workspaces/bmit-2026/agent-output/malta-catering/04-governance-constraints.md",
+  "companion_json": "/workspaces/bmit-2026/agent-output/malta-catering/04-governance-constraints.json",
+  "risk_level": "medium",
+  "risk_summary": "No must-fix issues remain in the governance artifacts. The true deny blocker is now correctly isolated to resource-group tags and encoded machine-readably. One should-fix confidence gap remains: Azure Portal assignment-count validation is still open, so discovery completeness is REST-verified but not independently cross-checked.",
+  "findings_summary": "No must-fix issues remain. Findings: 1 should-fix, 1 note.",
+  "counts": {
+    "must_fix": 0,
+    "should_fix": 1,
+    "note": 1
+  },
+  "findings": [
+    {
+      "id": "GOV-001",
+      "severity": "should_fix",
+      "title": "Portal assignment-count validation is still open",
+      "file": "/workspaces/bmit-2026/agent-output/malta-catering/04-governance-constraints.md",
+      "rationale": "The governance discovery reference expects the REST API assignment total to be cross-checked against the Azure Portal total. The artifact explicitly states that Portal validation was not performed, while the companion JSON reports discovery_status as COMPLETE. That leaves a residual completeness risk if a scope or filter difference caused one or more assignments to be missed during the manual REST fallback path.",
+      "recommendation": "Record the Azure Portal assignment total and confirm it matches the REST total of 21 assignments. If Portal validation cannot be performed, make the residual validation gap explicit in both the markdown and JSON instead of presenting discovery as fully closed."
+    },
+    {
+      "id": "GOV-002",
+      "severity": "note",
+      "title": "True deny blocker is now correctly isolated and machine-actionable",
+      "file": "/workspaces/bmit-2026/agent-output/malta-catering/04-governance-constraints.json",
+      "rationale": "The companion JSON now includes a top-level discovery envelope and explicit machine-actionable encoding for the only real deny blocker: resource-group tags. The blocker is modeled with azurePropertyPath resourceGroup.tags, requiredTags for the nine deny-enforced keys, and pathSemantics tag-policy-non-property. The markdown and JSON are aligned that Storage and Key Vault public-network controls are warnings, not deny gates, in the discovered scope.",
+      "recommendation": "No must-fix change is required. Keep this deny-policy encoding as the downstream source of truth for IaC compliance mapping and code-generation checks."
+    }
+  ]
+}
