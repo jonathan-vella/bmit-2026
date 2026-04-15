@@ -1,14 +1,16 @@
 """Malta Catering — Runtime Flow Diagram.
 
 Shows request, authentication, secret, data, and telemetry paths at runtime.
+App Service with VNet integration connects to backend services via private endpoints.
 """
 
 from diagrams import Cluster, Diagram, Edge
-from diagrams.azure.compute import ContainerApps
+from diagrams.azure.compute import AppServices
 from diagrams.azure.database import BlobStorage
 from diagrams.azure.devops import Repos
 from diagrams.azure.identity import ActiveDirectory
 from diagrams.azure.monitor import Monitor, ApplicationInsights
+from diagrams.azure.network import VirtualNetworks
 from diagrams.azure.security import KeyVaults
 from diagrams.onprem.client import Users
 
@@ -42,41 +44,39 @@ with Diagram(
         entra = ActiveDirectory("Entra ID\n(Staff Auth)")
 
     with Cluster("Azure — swedencentral", graph_attr={"color": "#0078D4", "fontcolor": "#0078D4"}):
-        with Cluster("Compute", graph_attr={"style": "dashed", "color": "#FF8C00", "fontcolor": "#FF8C00"}):
-            ca = ContainerApps("Container App\nReact SPA + API")
+        with Cluster("Compute (Public Endpoint)", graph_attr={"style": "dashed", "color": "#FF8C00", "fontcolor": "#FF8C00"}):
+            webapp = AppServices("App Service\nReact SPA + API")
 
-        with Cluster("Security", graph_attr={"style": "dashed", "color": "#C00000", "fontcolor": "#C00000"}):
-            kv = KeyVaults("Key Vault")
+        with Cluster("VNet Integration (Private)", graph_attr={"style": "dashed", "color": "#5C2D91", "fontcolor": "#5C2D91"}):
+            vnet = VirtualNetworks("VNet\n(snet-app)")
 
-        with Cluster("Data", graph_attr={"style": "dashed", "color": "#107C10", "fontcolor": "#107C10"}):
-            st = BlobStorage("Storage Account\n(Table Storage)")
-
-        with Cluster("Images", graph_attr={"style": "dashed", "color": "#666666", "fontcolor": "#666666"}):
-            acr = Repos("Container\nRegistry")
+            with Cluster("Private Endpoints (snet-pe)", graph_attr={"style": "dashed", "color": "#C00000", "fontcolor": "#C00000"}):
+                kv = KeyVaults("Key Vault\n(PE)")
+                st = BlobStorage("Storage Account\n(Table Storage, PE)")
+                acr = Repos("Container\nRegistry (PE)")
 
         with Cluster("Observability", graph_attr={"style": "dashed", "color": "#0078D4", "fontcolor": "#0078D4"}):
             log = Monitor("Log Analytics")
             appi = ApplicationInsights("App Insights")
 
-    # Request paths
-    customer >> Edge(label="HTTPS", color="#0078D4") >> ca
-    staff >> Edge(label="HTTPS", color="#0078D4") >> ca
+    # Request paths (public)
+    customer >> Edge(label="HTTPS", color="#0078D4") >> webapp
+    staff >> Edge(label="HTTPS", color="#0078D4") >> webapp
 
     # Auth paths
     customer >> Edge(label="OAuth 2.0", style="dashed", color="#5C2D91") >> social_idp
     staff >> Edge(label="Entra ID", style="dashed", color="#5C2D91") >> entra
-    social_idp >> Edge(label="token", style="dashed", color="#5C2D91") >> ca
-    entra >> Edge(label="JWT + roles", style="dashed", color="#5C2D91") >> ca
+    social_idp >> Edge(label="token", style="dashed", color="#5C2D91") >> webapp
+    entra >> Edge(label="JWT + roles", style="dashed", color="#5C2D91") >> webapp
 
-    # Secret path (Managed Identity)
-    ca >> Edge(label="MI → secrets", color="#C00000") >> kv
+    # VNet integration
+    webapp >> Edge(label="VNet integration", color="#5C2D91") >> vnet
 
-    # Data path (Managed Identity)
-    ca >> Edge(label="MI → tables", color="#107C10") >> st
-
-    # Image pull
-    acr >> Edge(label="image pull", style="dotted", color="#666666") >> ca
+    # Private endpoint paths (via VNet)
+    vnet >> Edge(label="MI → secrets (PE)", color="#C00000") >> kv
+    vnet >> Edge(label="MI → tables (PE)", color="#107C10") >> st
+    vnet >> Edge(label="image pull (PE)", style="dotted", color="#666666") >> acr
 
     # Telemetry paths
-    ca >> Edge(label="logs", style="dashed", color="#0078D4") >> log
-    ca >> Edge(label="telemetry", style="dashed", color="#0078D4") >> appi
+    webapp >> Edge(label="logs", style="dashed", color="#0078D4") >> log
+    webapp >> Edge(label="telemetry", style="dashed", color="#0078D4") >> appi

@@ -93,12 +93,12 @@ flowchart LR
 
 ### Architecture Pattern
 
-| Field              | Value                                                                  |
-| ------------------ | ---------------------------------------------------------------------- |
-| Workload Pattern   | SPA + API (containerized React front-end with lightweight API)         |
-| Recommended Option | Container Apps Consumption + ACR + Table Storage + Key Vault           |
-| Tier               | Cost-Optimized                                                         |
-| Justification      | Small outlet, low TPS (1/s), dev-only environment, budget < EUR 500/mo |
+| Field              | Value                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workload Pattern   | SPA + API (containerized React front-end with lightweight API)                                                                               |
+| Recommended Option | App Service S1 (Linux containers) + ACR Premium + VNet + Table Storage + Key Vault                                                           |
+| Tier               | Cost-Optimized                                                                                                                               |
+| Justification      | Small outlet, low TPS (1/s), dev-only, always-on compute, VNet integration for private connectivity, staging slot for blue-green deployments |
 
 ## ⚡ Non-Functional Requirements (NFRs)
 
@@ -193,33 +193,33 @@ flowchart LR
 
 ### Authentication & Authorization
 
-| Requirement       | Value                                    |
-| ----------------- | ---------------------------------------- |
-| Identity Provider | Social IdPs via Container Apps Easy Auth |
-| MFA Requirement   | Not required                             |
-| RBAC Model        | Application-level (staff vs customer)    |
+| Requirement       | Value                                                  |
+| ----------------- | ------------------------------------------------------ |
+| Identity Provider | Social IdPs via App Service Authentication (Easy Auth) |
+| MFA Requirement   | Not required                                           |
+| RBAC Model        | Application-level (staff vs customer)                  |
 
 ### Network Security
 
-| Control                     | Required | Notes                                   |
-| --------------------------- | -------- | --------------------------------------- |
-| Private endpoints           | ❌       | Not needed for cost-optimized dev       |
-| VNet integration            | ❌       | Adds cost; not justified at this scale  |
-| Public endpoints acceptable | ✅       | Container Apps ingress is public        |
-| WAF required                | ❌       | Not justified for < 1K concurrent users |
+| Control                     | Required | Notes                                                     |
+| --------------------------- | -------- | --------------------------------------------------------- |
+| Private endpoints           | ✅       | Key Vault, Storage, ACR via VNet                          |
+| VNet integration            | ✅       | App Service S1 with VNet integration                      |
+| Public endpoints acceptable | ✅       | App Service public inbound only; backend services private |
+| WAF required                | ❌       | Not justified for < 1K concurrent users                   |
 
 ### Recommended Security Controls
 
-| Control               | Recommended | User Confirmed | Notes                                          |
-| --------------------- | ----------- | -------------- | ---------------------------------------------- |
-| Managed Identity      | Yes         | Yes            | Container Apps to Key Vault and Storage        |
-| Private Endpoints     | No          | No             | Cost-optimized tier; public endpoints accepted |
-| WAF                   | No          | No             | Low traffic; not cost-justified                |
-| Key Vault for Secrets | Yes         | Yes            | Store storage connection strings securely      |
-| Diagnostic Settings   | Yes         | —              | Basic logging to Log Analytics (recommended)   |
-| TLS 1.2 Minimum       | Yes         | Yes            | Enforced on all endpoints                      |
-| Encryption at Rest    | Yes         | —              | Platform-managed (Azure default)               |
-| Network Isolation     | No          | No             | Not required for this budget/scale             |
+| Control               | Recommended | User Confirmed | Notes                                        |
+| --------------------- | ----------- | -------------- | -------------------------------------------- |
+| Managed Identity      | Yes         | Yes            | App Service to Key Vault, Storage, and ACR   |
+| Private Endpoints     | Yes         | Yes            | Key Vault, Storage Account, ACR via VNet PE  |
+| WAF                   | No          | No             | Low traffic; not cost-justified              |
+| Key Vault for Secrets | Yes         | Yes            | Store storage connection strings securely    |
+| Diagnostic Settings   | Yes         | —              | Basic logging to Log Analytics (recommended) |
+| TLS 1.2 Minimum       | Yes         | Yes            | Enforced on all endpoints                    |
+| Encryption at Rest    | Yes         | —              | Platform-managed (Azure default)             |
+| Network Isolation     | Yes         | Yes            | VNet integration with private endpoints      |
 
 ## 💰 Budget
 
@@ -227,12 +227,12 @@ flowchart LR
 > The Azure Pricing MCP server generates detailed cost estimates during
 > architecture assessment (Step 2). Provide an approximate budget here.
 
-| Field              | Value                                |
-| ------------------ | ------------------------------------ |
-| 💰 Monthly Budget  | EUR 100-500                          |
-| 📅 Annual Budget   | EUR 1,200-6,000                      |
-| 🚦 Limit Type      | 🟡 Soft (can negotiate within range) |
-| 📊 Cost Model Pref | Consumption (pay-per-use preferred)  |
+| Field              | Value                                                      |
+| ------------------ | ---------------------------------------------------------- |
+| 💰 Monthly Budget  | EUR 100-500                                                |
+| 📅 Annual Budget   | EUR 1,200-6,000                                            |
+| 🚦 Limit Type      | 🟡 Soft (can negotiate within range)                       |
+| 📊 Cost Model Pref | Fixed (App Service S1 always-on) + consumption for storage |
 
 ### Cost Optimization Priorities
 
@@ -247,12 +247,12 @@ flowchart LR
 
 ### Monitoring & Alerting
 
-| Capability             | Required | Tool / Service       | Notes                      |
-| ---------------------- | -------- | -------------------- | -------------------------- |
-| Application monitoring | ✅       | Application Insights | Basic telemetry            |
-| Log aggregation        | ✅       | Log Analytics        | Container Apps auto-config |
-| Alert notifications    | ❌       | —                    | Not required for demo      |
-| Custom dashboards      | ❌       | —                    | Not required for demo      |
+| Capability             | Required | Tool / Service       | Notes                   |
+| ---------------------- | -------- | -------------------- | ----------------------- |
+| Application monitoring | ✅       | Application Insights | Basic telemetry         |
+| Log aggregation        | ✅       | Log Analytics        | App Service auto-config |
+| Alert notifications    | ❌       | —                    | Not required for demo   |
+| Custom dashboards      | ❌       | —                    | Not required for demo   |
 
 ### Support & Maintenance
 
@@ -282,11 +282,11 @@ flowchart LR
 
 ## 📊 Complexity Classification
 
-| Field      | Value                                                                               |
-| ---------- | ----------------------------------------------------------------------------------- |
-| Complexity | `simple`                                                                            |
-| Criteria   | 4 resource types (Container Apps, ACR, Storage, Key Vault), single region, dev only |
-| Rationale  | Small outlet, single environment, no custom policies, straightforward SPA + API     |
+| Field      | Value                                                                                                                 |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| Complexity | `simple`                                                                                                              |
+| Criteria   | 7+ resource types (App Service, ACR, VNet, Private Endpoints, Storage, Key Vault, DNS Zones), single region, dev only |
+| Rationale  | Small outlet, single environment, no custom policies, straightforward SPA + API                                       |
 
 ---
 
@@ -294,13 +294,13 @@ flowchart LR
 
 ### Handoff Summary
 
-| Aspect               | Key Points                                                                      |
-| -------------------- | ------------------------------------------------------------------------------- |
-| Critical Constraints | GDPR data residency (EU-only); budget EUR 100-500/mo; payment on delivery       |
-| Key Decisions        | SPA + API on Container Apps; Table Storage for orders; Bicep IaC; social auth   |
-| Open Risks           | Social IdP setup adds complexity; Table Storage query limitations for reporting |
-| Recommended Pattern  | SPA + API (Container Apps Consumption)                                          |
-| Budget Envelope      | EUR 100-500/month                                                               |
+| Aspect               | Key Points                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| Critical Constraints | GDPR data residency (EU-only); budget EUR 100-500/mo; payment on delivery                             |
+| Key Decisions        | SPA + API on App Service S1 (containers); Table Storage for orders; Bicep IaC; VNet + PE; social auth |
+| Open Risks           | Social IdP setup adds complexity; Table Storage query limitations for reporting                       |
+| Recommended Pattern  | SPA + API (App Service S1 Linux Containers)                                                           |
+| Budget Envelope      | EUR 100-500/month                                                                                     |
 
 ### Requirements Completeness
 
@@ -323,7 +323,7 @@ flowchart LR
 | Topic                      | Link                                                                                                |
 | -------------------------- | --------------------------------------------------------------------------------------------------- |
 | Well-Architected Framework | [Overview](https://learn.microsoft.com/azure/well-architected/)                                     |
-| Azure Container Apps       | [Documentation](https://learn.microsoft.com/azure/container-apps/)                                  |
+| Azure App Service          | [Documentation](https://learn.microsoft.com/azure/app-service/)                                     |
 | Azure Table Storage        | [Documentation](https://learn.microsoft.com/azure/storage/tables/)                                  |
 | Azure Regions              | [Products by Region](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/) |
 | Compliance Offerings       | [Azure Compliance](https://learn.microsoft.com/azure/compliance/)                                   |

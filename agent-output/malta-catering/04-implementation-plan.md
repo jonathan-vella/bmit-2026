@@ -31,10 +31,11 @@
 ## 📋 Overview
 
 Bicep implementation plan for the Malta Catering ordering portal — a lightweight SPA + API
-on Azure Container Apps (Consumption) backed by Table Storage, Key Vault, and a full
-observability stack. All 7 architecture resources plus a cost-monitoring budget are
-covered by AVM modules or native Bicep resources. Deployment uses a **4-phase** strategy
-with dependency-ordered sequencing and validation gates between phases.
+on Azure App Service (S1) with VNet integration and private endpoints, backed by Table
+Storage, Key Vault, and a full observability stack. All architecture resources plus a
+cost-monitoring budget are covered by AVM modules or native Bicep resources. Deployment
+uses a **5-phase** strategy with dependency-ordered sequencing and validation gates
+between phases.
 
 **Governance adaptation**: The resource group must carry 9 tags enforced by a
 management-group-level Deny policy (`JV-Enforce Resource Group Tags v3`). The
@@ -46,20 +47,24 @@ and are set explicitly in IaC for visibility.
 
 ## 📦 Resource Inventory
 
-| Resource                   | Type                                            | SKU              | AVM Module                                                   | Version    | Dependencies                                  | Status  |
-| -------------------------- | ----------------------------------------------- | ---------------- | ------------------------------------------------------------ | ---------- | --------------------------------------------- | ------- |
-| Log Analytics Workspace    | `Microsoft.OperationalInsights/workspaces`       | Per-GB (free)    | ✅ `br/public:avm/res/operational-insights/workspace`         | `0.15.0`   | —                                              | ⬜ Todo |
-| Application Insights       | `Microsoft.Insights/components`                  | Free tier        | ✅ `br/public:avm/res/insights/component`                     | `0.7.1`    | Log Analytics                                 | ⬜ Todo |
-| Key Vault                  | `Microsoft.KeyVault/vaults`                      | Standard         | ✅ `br/public:avm/res/key-vault/vault`                        | `0.13.3`   | Log Analytics                                 | ⬜ Todo |
-| Storage Account            | `Microsoft.Storage/storageAccounts`              | Standard LRS GPv2| ✅ `br/public:avm/res/storage/storage-account`                | `0.32.0`   | Log Analytics                                 | ⬜ Todo |
-| Container Registry         | `Microsoft.ContainerRegistry/registries`         | Basic            | ✅ `br/public:avm/res/container-registry/registry`            | `0.12.1`   | Log Analytics                                 | ⬜ Todo |
-| Container Apps Environment | `Microsoft.App/managedEnvironments`              | Consumption      | ✅ `br/public:avm/res/app/managed-environment`                | `0.13.1`   | Log Analytics                                 | ⬜ Todo |
-| Container App              | `Microsoft.App/containerApps`                    | 0.25 vCPU/0.5 GiB| ✅ `br/public:avm/res/app/container-app`                      | `0.22.0`   | CA Env, ACR, KV, Storage, App Insights        | ⬜ Todo |
-| Consumption Budget         | `Microsoft.Consumption/budgets`                  | —                | ❌ Native (AVM is MG-scoped only)                             | `2023-11-01`| —                                             | ⬜ Todo |
+| Resource                   | Type                                       | SKU               | AVM Module                                            | Version      | Dependencies                              | Status  |
+| -------------------------- | ------------------------------------------ | ----------------- | ----------------------------------------------------- | ------------ | ----------------------------------------- | ------- |
+| Log Analytics Workspace    | `Microsoft.OperationalInsights/workspaces` | Per-GB (free)     | ✅ `br/public:avm/res/operational-insights/workspace` | `0.15.0`     | —                                         | ⬜ Todo |
+| Application Insights       | `Microsoft.Insights/components`            | Free tier         | ✅ `br/public:avm/res/insights/component`             | `0.7.1`      | Log Analytics                             | ⬜ Todo |
+| Virtual Network            | `Microsoft.Network/virtualNetworks`        | —                 | ✅ `br/public:avm/res/network/virtual-network`        | `0.7.0`      | —                                         | ⬜ Todo |
+| Private DNS Zone (KV)      | `Microsoft.Network/privateDnsZones`        | —                 | ✅ `br/public:avm/res/network/private-dns-zone`       | `0.7.0`      | VNet                                      | ⬜ Todo |
+| Private DNS Zone (Storage) | `Microsoft.Network/privateDnsZones`        | —                 | ✅ `br/public:avm/res/network/private-dns-zone`       | `0.7.0`      | VNet                                      | ⬜ Todo |
+| Private DNS Zone (ACR)     | `Microsoft.Network/privateDnsZones`        | —                 | ✅ `br/public:avm/res/network/private-dns-zone`       | `0.7.0`      | VNet                                      | ⬜ Todo |
+| Key Vault                  | `Microsoft.KeyVault/vaults`                | Standard          | ✅ `br/public:avm/res/key-vault/vault`                | `0.13.3`     | Log Analytics, VNet, DNS Zone             | ⬜ Todo |
+| Storage Account            | `Microsoft.Storage/storageAccounts`        | Standard LRS GPv2 | ✅ `br/public:avm/res/storage/storage-account`        | `0.32.0`     | Log Analytics, VNet, DNS Zone             | ⬜ Todo |
+| Container Registry         | `Microsoft.ContainerRegistry/registries`   | Premium           | ✅ `br/public:avm/res/container-registry/registry`    | `0.12.1`     | Log Analytics, VNet, DNS Zone             | ⬜ Todo |
+| App Service Plan           | `Microsoft.Web/serverfarms`                | S1                | ✅ `br/public:avm/res/web/serverfarm`                 | `0.4.0`      | —                                         | ⬜ Todo |
+| Web App                    | `Microsoft.Web/sites`                      | —                 | ✅ `br/public:avm/res/web/site`                       | `0.15.0`     | ASP, VNet, ACR, KV, Storage, App Insights | ⬜ Todo |
+| Consumption Budget         | `Microsoft.Consumption/budgets`            | —                 | ❌ Native (AVM is MG-scoped only)                     | `2023-11-01` | —                                         | ⬜ Todo |
 
-> **AVM coverage**: 7/8 resources use AVM modules. Budget uses a native Bicep resource because
+> **AVM coverage**: 11/12 resources use AVM modules. Budget uses a native Bicep resource because
 > the AVM budget module (`avm/res/consumption/budget/mg-scope`) targets management-group scope,
-> not resource-group scope.
+> not resource-group scope. Container Registry is upgraded to Premium SKU to support private endpoints.
 
 ---
 
@@ -72,25 +77,29 @@ infra/bicep/malta-catering/
 ├── modules/
 │   ├── log-analytics.bicep             # AVM: operational-insights/workspace
 │   ├── app-insights.bicep              # AVM: insights/component
-│   ├── key-vault.bicep                 # AVM: key-vault/vault
-│   ├── storage.bicep                   # AVM: storage/storage-account
-│   ├── container-registry.bicep        # AVM: container-registry/registry
-│   ├── container-apps-env.bicep        # AVM: app/managed-environment
-│   ├── container-app.bicep             # AVM: app/container-app
+│   ├── virtual-network.bicep           # AVM: network/virtual-network
+│   ├── private-dns-zones.bicep         # AVM: network/private-dns-zone (×3)
+│   ├── key-vault.bicep                 # AVM: key-vault/vault + PE
+│   ├── storage.bicep                   # AVM: storage/storage-account + PE
+│   ├── container-registry.bicep        # AVM: container-registry/registry + PE
+│   ├── app-service-plan.bicep          # AVM: web/serverfarm
+│   ├── web-app.bicep                   # AVM: web/site + VNet integration
 │   └── budget.bicep                    # Native: Microsoft.Consumption/budgets
 └── deploy.ps1                          # Deployment script with what-if
 ```
 
-| Module                     | AVM Source                                                      | Version    | Purpose                                     |
-| -------------------------- | --------------------------------------------------------------- | ---------- | ------------------------------------------- |
-| log-analytics.bicep        | `br/public:avm/res/operational-insights/workspace`              | `0.15.0`   | Shared log sink for all resources            |
-| app-insights.bicep         | `br/public:avm/res/insights/component`                          | `0.7.1`    | Application-level telemetry                  |
-| key-vault.bicep            | `br/public:avm/res/key-vault/vault`                             | `0.13.3`   | Secrets management with RBAC auth            |
-| storage.bicep              | `br/public:avm/res/storage/storage-account`                     | `0.32.0`   | Table Storage for orders and menu data       |
-| container-registry.bicep   | `br/public:avm/res/container-registry/registry`                 | `0.12.1`   | Basic-tier image registry                    |
-| container-apps-env.bicep   | `br/public:avm/res/app/managed-environment`                     | `0.13.1`   | Consumption-plan environment                 |
-| container-app.bicep        | `br/public:avm/res/app/container-app`                           | `0.22.0`   | React SPA + API with managed identity        |
-| budget.bicep               | Native `Microsoft.Consumption/budgets@2023-11-01`               | —          | Cost monitoring with forecast alerts         |
+| Module                   | AVM Source                                         | Version  | Purpose                                     |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------- |
+| log-analytics.bicep      | `br/public:avm/res/operational-insights/workspace` | `0.15.0` | Shared log sink for all resources           |
+| app-insights.bicep       | `br/public:avm/res/insights/component`             | `0.7.1`  | Application-level telemetry                 |
+| virtual-network.bicep    | `br/public:avm/res/network/virtual-network`        | `0.7.0`  | VNet with subnets for ASP + PE              |
+| private-dns-zones.bicep  | `br/public:avm/res/network/private-dns-zone`       | `0.7.0`  | DNS zones for KV, Storage, ACR PEs          |
+| key-vault.bicep          | `br/public:avm/res/key-vault/vault`                | `0.13.3` | Secrets management with RBAC auth + PE      |
+| storage.bicep            | `br/public:avm/res/storage/storage-account`        | `0.32.0` | Table Storage for orders and menu data + PE |
+| container-registry.bicep | `br/public:avm/res/container-registry/registry`    | `0.12.1` | Premium-tier image registry + PE            |
+| app-service-plan.bicep   | `br/public:avm/res/web/serverfarm`                 | `0.4.0`  | S1 App Service Plan (Linux)                 |
+| web-app.bicep            | `br/public:avm/res/web/site`                       | `0.15.0` | React SPA + API with MI + VNet integration  |
+| budget.bicep             | Native `Microsoft.Consumption/budgets@2023-11-01`  | —        | Cost monitoring with forecast alerts        |
 
 ---
 
@@ -118,6 +127,9 @@ infra/bicep/malta-catering/
 - `budgetStartDate` (string) — `YYYY-MM-01` format
 - `containerImageName` (string, default: `'malta-catering-app'`)
 - `containerImageTag` (string, default: `'latest'`)
+- `vnetAddressPrefix` (string, default: `'10.0.0.0/16'`)
+- `appServiceSubnetPrefix` (string, default: `'10.0.1.0/24'`)
+- `privateEndpointSubnetPrefix` (string, default: `'10.0.2.0/24'`)
 
 **Variables**:
 
@@ -128,12 +140,14 @@ infra/bicep/malta-catering/
 
 1. `log-analytics.bicep`
 2. `app-insights.bicep` ← depends on Log Analytics output
-3. `key-vault.bicep` ← depends on Log Analytics output
-4. `storage.bicep` ← depends on Log Analytics output
-5. `container-registry.bicep` ← depends on Log Analytics output
-6. `container-apps-env.bicep` ← depends on Log Analytics output
-7. `container-app.bicep` ← depends on CA Env, ACR, KV, Storage, App Insights outputs
-8. `budget.bicep` ← standalone
+3. `virtual-network.bicep` ← standalone
+4. `private-dns-zones.bicep` ← depends on VNet output
+5. `key-vault.bicep` ← depends on Log Analytics, VNet, DNS Zone outputs
+6. `storage.bicep` ← depends on Log Analytics, VNet, DNS Zone outputs
+7. `container-registry.bicep` ← depends on Log Analytics, VNet, DNS Zone outputs
+8. `app-service-plan.bicep` ← standalone
+9. `web-app.bicep` ← depends on ASP, VNet, ACR, KV, Storage, App Insights outputs
+10. `budget.bicep` ← standalone
 
 ### Task 2: modules/log-analytics.bicep
 
@@ -146,7 +160,7 @@ infra/bicep/malta-catering/
 ```yaml
 sku: PerGB2018
 retentionInDays: 30
-dailyQuotaGb: 5      # free-tier cap
+dailyQuotaGb: 5 # free-tier cap
 ```
 
 **Outputs**: `resourceId`, `resourceName`
@@ -206,7 +220,7 @@ sku: Standard_LRS
 minimumTlsVersion: TLS1_2
 supportsHttpsTrafficOnly: true
 allowBlobPublicAccess: false
-allowSharedKeyAccess: false        # Entra ID auth only (governance Modify policy)
+allowSharedKeyAccess: false # Entra ID auth only (governance Modify policy)
 tableServices:
   tables:
     - name: orders
@@ -223,74 +237,126 @@ diagnosticSettings:
 **Resources** (via AVM):
 
 - Container Registry: `acrmaltadev{suffix}` (no hyphens)
-- Basic SKU, admin user disabled
+- Premium SKU (required for private endpoints), admin user disabled
+- Private endpoint in PE subnet, linked to private DNS zone
 
 **Key Configuration**:
 
 ```yaml
-sku: Basic
+sku: Premium
 adminUserEnabled: false
+publicNetworkAccess: Disabled
+privateEndpoints:
+  - subnetResourceId: <vnet.outputs.peSubnetId>
+    privateDnsZoneGroup:
+      privateDnsZoneGroupConfigs:
+        - privateDnsZoneResourceId: <dnsZones.outputs.acrZoneId>
 diagnosticSettings:
   - workspaceResourceId: <logAnalytics.outputs.resourceId>
 ```
 
 **Outputs**: `resourceId`, `resourceName`, `loginServer`
 
-### Task 7: modules/container-apps-env.bicep
+### Task 7: modules/virtual-network.bicep
 
 **Resources** (via AVM):
 
-- Container Apps Environment: `cae-malta-catering-dev`
-- Consumption plan, Log Analytics integration
+- Virtual Network: `vnet-malta-catering-dev`, address space `10.0.0.0/16`
+- Subnet `snet-app`: `10.0.1.0/24` — delegated to `Microsoft.Web/serverFarms` for App Service VNet integration
+- Subnet `snet-pe`: `10.0.2.0/24` — for private endpoints (KV, Storage, ACR)
 
 **Key Configuration**:
 
 ```yaml
-appLogsConfiguration:
-  destination: log-analytics
-  logAnalyticsConfiguration:
-    customerId: <logAnalytics.outputs.customerId>
-    sharedKey: <logAnalytics listKeys>
-zoneRedundant: false                # single zone for dev/demo
+addressSpace: ["10.0.0.0/16"]
+subnets:
+  - name: snet-app
+    addressPrefix: 10.0.1.0/24
+    delegation:
+      name: Microsoft.Web/serverFarms
+  - name: snet-pe
+    addressPrefix: 10.0.2.0/24
 ```
 
-**Outputs**: `resourceId`, `resourceName`, `defaultDomain`
+**Outputs**: `resourceId`, `resourceName`, `appSubnetId`, `peSubnetId`
 
-### Task 8: modules/container-app.bicep
+### Task 8: modules/private-dns-zones.bicep
+
+**Resources** (via AVM, ×3 zones):
+
+- `privatelink.vaultcore.azure.net` — Key Vault PE DNS
+- `privatelink.table.core.windows.net` — Storage Table PE DNS
+- `privatelink.azurecr.io` — Container Registry PE DNS
+- Each zone linked to the VNet
+
+**Key Configuration**:
+
+```yaml
+zones:
+  - name: privatelink.vaultcore.azure.net
+    virtualNetworkLinks:
+      - virtualNetworkResourceId: <vnet.outputs.resourceId>
+  - name: privatelink.table.core.windows.net
+    virtualNetworkLinks:
+      - virtualNetworkResourceId: <vnet.outputs.resourceId>
+  - name: privatelink.azurecr.io
+    virtualNetworkLinks:
+      - virtualNetworkResourceId: <vnet.outputs.resourceId>
+```
+
+**Outputs**: `kvZoneId`, `storageZoneId`, `acrZoneId`
+
+### Task 9: modules/app-service-plan.bicep
 
 **Resources** (via AVM):
 
-- Container App: `ca-malta-catering-dev`
+- App Service Plan: `asp-malta-catering-dev`
+- S1 tier (Linux), single instance
+
+**Key Configuration**:
+
+```yaml
+kind: linux
+reserved: true
+skuName: S1
+skuCapacity: 1
+```
+
+**Outputs**: `resourceId`, `resourceName`
+
+### Task 10: modules/web-app.bicep
+
+**Resources** (via AVM):
+
+- Web App: `app-malta-catering-dev`
 - System-assigned managed identity
-- HTTP ingress on port 80, external
-- 0–1 replicas (scale-to-zero)
+- VNet integration via `snet-app` subnet
+- Linux container deployment from ACR
+- Staging slot for blue-green deployments
 - Role assignments: KV Secrets User, Storage Table Data Contributor, ACR Pull
 
 **Key Configuration**:
 
 ```yaml
+kind: app,linux,container
+serverFarmResourceId: <asp.outputs.resourceId>
 managedIdentities:
   systemAssigned: true
-containers:
-  - name: malta-catering-app
-    image: <acr.loginServer>/<imageName>:<imageTag>
-    resources:
-      cpu: 0.25
-      memory: 0.5Gi
-    env:
-      - name: APPLICATIONINSIGHTS_CONNECTION_STRING
-        secretRef: appinsights-conn
-      - name: AZURE_STORAGE_ACCOUNT_NAME
-        value: <storage.resourceName>
-      - name: AZURE_KEYVAULT_URI
-        value: <keyVault.uri>
-ingress:
-  external: true
-  targetPort: 80
-  transport: http
-scale:
-  minReplicas: 0
-  maxReplicas: 1
+siteConfig:
+  http20Enabled: true
+  linuxFxVersion: "DOCKER|<acr.loginServer>/<imageName>:<imageTag>"
+  appSettings:
+    - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+      value: <appInsights.outputs.connectionString>
+    - name: AZURE_STORAGE_ACCOUNT_NAME
+      value: <storage.resourceName>
+    - name: AZURE_KEYVAULT_URI
+      value: <keyVault.uri>
+    - name: DOCKER_REGISTRY_SERVER_URL
+      value: "https://<acr.loginServer>"
+virtualNetworkSubnetId: <vnet.outputs.appSubnetId>
+slots:
+  - name: staging
 roleAssignments:
   - roleDefinitionId: Key Vault Secrets User (4633458b-17de-408a-b874-0445c86b69e6)
     principalType: ServicePrincipal
@@ -303,9 +369,9 @@ roleAssignments:
     scope: containerRegistry
 ```
 
-**Outputs**: `resourceId`, `resourceName`, `fqdn`, `principalId`
+**Outputs**: `resourceId`, `resourceName`, `defaultHostName`, `principalId`
 
-### Task 9: modules/budget.bicep
+### Task 11: modules/budget.bicep
 
 **Resources** (native Bicep):
 
@@ -316,7 +382,7 @@ roleAssignments:
 
 ```yaml
 category: Cost
-amount: <budgetAmount>           # parameterized, default 500
+amount: <budgetAmount> # parameterized, default 500
 timeGrain: Monthly
 notifications:
   forecast80:
@@ -335,7 +401,7 @@ notifications:
 
 **Outputs**: `budgetId`, `budgetName`
 
-### Task 10: deploy.ps1 (Deployment Script)
+### Task 12: deploy.ps1 (Deployment Script)
 
 **Features**:
 
@@ -349,53 +415,63 @@ notifications:
 
 ## 🚀 Deployment Phases
 
-> Deployment strategy: **Phased** (chosen during planning) — 4 phases with validation gates
+> Deployment strategy: **Phased** (chosen during planning) — 5 phases with validation gates
 
 ### Phase 1: Foundation & Monitoring
 
-| Order | Module              | Resources                               | Validation                             |
-| ----- | ------------------- | --------------------------------------- | -------------------------------------- |
-| 1     | log-analytics.bicep | Log Analytics Workspace                 | Workspace accessible, data ingesting   |
-| 2     | app-insights.bicep  | Application Insights                    | Connected to Log Analytics workspace   |
+| Order | Module              | Resources               | Validation                           |
+| ----- | ------------------- | ----------------------- | ------------------------------------ |
+| 1     | log-analytics.bicep | Log Analytics Workspace | Workspace accessible, data ingesting |
+| 2     | app-insights.bicep  | Application Insights    | Connected to Log Analytics workspace |
 
 **Approval Gate**: Verify Log Analytics workspace is provisioned and App Insights is linked.
 
-### Phase 2: Security, Data & Images
+### Phase 2: Networking
 
-| Order | Module                    | Resources                                | Validation                                      |
-| ----- | ------------------------- | ---------------------------------------- | ----------------------------------------------- |
-| 3     | key-vault.bicep           | Key Vault (Standard, RBAC auth)          | RBAC enabled, diagnostic settings active         |
-| 4     | storage.bicep             | Storage Account (LRS GPv2) + 3 tables    | HTTPS-only, no public blob, no shared key, tables exist |
-| 5     | container-registry.bicep  | Container Registry (Basic)               | Admin disabled, login server reachable           |
+| Order | Module                  | Resources                        | Validation                                         |
+| ----- | ----------------------- | -------------------------------- | -------------------------------------------------- |
+| 3     | virtual-network.bicep   | VNet + 2 subnets (app, PE)       | VNet provisioned, subnets have correct delegations |
+| 4     | private-dns-zones.bicep | 3 Private DNS Zones + VNet links | DNS zones linked to VNet, resolving correctly      |
 
-**Approval Gate**: Verify security hardening on KV and Storage. Confirm ACR accepts image push.
+**Approval Gate**: Verify VNet and subnets are provisioned. Confirm DNS zones are linked.
 
-### Phase 3: Compute
+### Phase 3: Security, Data & Images
 
-| Order | Module                     | Resources                                     | Validation                                       |
-| ----- | -------------------------- | --------------------------------------------- | ------------------------------------------------ |
-| 6     | container-apps-env.bicep   | Container Apps Environment (Consumption)       | Environment provisioned, Log Analytics streaming  |
-| 7     | container-app.bicep        | Container App + MI + role assignments          | App deployed, MI has KV/Storage/ACR roles, FQDN responds |
+| Order | Module                   | Resources                                  | Validation                                               |
+| ----- | ------------------------ | ------------------------------------------ | -------------------------------------------------------- |
+| 5     | key-vault.bicep          | Key Vault (Standard, RBAC auth) + PE       | RBAC enabled, PE active, diagnostic settings on          |
+| 6     | storage.bicep            | Storage Account (LRS GPv2) + 3 tables + PE | HTTPS-only, no public blob, no shared key, PE active     |
+| 7     | container-registry.bicep | Container Registry (Premium) + PE          | Admin disabled, PE active, login server reachable via PE |
 
-**Approval Gate**: Verify Container App is running, managed identity roles are assigned, FQDN returns HTTP 200.
+**Approval Gate**: Verify security hardening on KV and Storage. Confirm PEs resolve via private DNS. Confirm ACR accepts image push.
 
-### Phase 4: Cost Monitoring
+### Phase 4: Compute
 
-| Order | Module       | Resources                              | Validation                          |
-| ----- | ------------ | -------------------------------------- | ----------------------------------- |
-| 8     | budget.bicep | Consumption Budget + 3 alert thresholds | Budget visible in Azure Cost Management |
+| Order | Module                 | Resources                                      | Validation                                                                            |
+| ----- | ---------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 8     | app-service-plan.bicep | App Service Plan (S1 Linux)                    | Plan provisioned, S1 SKU confirmed                                                    |
+| 9     | web-app.bicep          | Web App + MI + VNet integration + staging slot | App deployed, MI has KV/Storage/ACR roles, VNet integrated, default hostname responds |
+
+**Approval Gate**: Verify Web App is running, managed identity roles are assigned, VNet integration is active, default hostname returns HTTP 200.
+
+### Phase 5: Cost Monitoring
+
+| Order | Module       | Resources                               | Validation                              |
+| ----- | ------------ | --------------------------------------- | --------------------------------------- |
+| 10    | budget.bicep | Consumption Budget + 3 alert thresholds | Budget visible in Azure Cost Management |
 
 **Approval Gate**: Verify budget appears in Azure Cost Management with correct thresholds.
 
 ### Phase Summary
 
-| Phase | Name                     | Resources | Est. Deploy Time | Approval Gate |
-| ----- | ------------------------ | --------- | ---------------- | ------------- |
-| 1     | Foundation & Monitoring  | 2         | ~3 min           | ✅            |
-| 2     | Security, Data & Images  | 3         | ~5 min           | ✅            |
-| 3     | Compute                  | 2         | ~5 min           | ✅            |
-| 4     | Cost Monitoring          | 1         | ~1 min           | ✅            |
-| **Total** |                      | **8**     | **~14 min**      |               |
+| Phase     | Name                    | Resources  | Est. Deploy Time | Approval Gate |
+| --------- | ----------------------- | ---------- | ---------------- | ------------- |
+| 1         | Foundation & Monitoring | 2          | ~3 min           | ✅            |
+| 2         | Networking              | 4          | ~3 min           | ✅            |
+| 3         | Security, Data & Images | 3 (+3 PEs) | ~5 min           | ✅            |
+| 4         | Compute                 | 2          | ~6 min           | ✅            |
+| 5         | Cost Monitoring         | 1          | ~1 min           | ✅            |
+| **Total** |                         | **~12**    | **~18 min**      |               |
 
 ---
 
@@ -421,34 +497,35 @@ Source: [04-runtime-diagram.py](./04-runtime-diagram.py) (Python `diagrams` libr
 
 ## 🏷️ Naming Conventions
 
-| Resource                   | Pattern                            | Example (dev)                 | Generated Name                 |
-| -------------------------- | ---------------------------------- | ----------------------------- | ------------------------------ |
-| Resource Group             | `rg-{project}-{env}`               | `rg-malta-catering-dev`       | `rg-malta-catering-dev`        |
-| Log Analytics Workspace    | `log-{project}-{env}`              | `log-malta-catering-dev`      | `log-malta-catering-dev`       |
-| Application Insights       | `appi-{project}-{env}`             | `appi-malta-catering-dev`     | `appi-malta-catering-dev`      |
-| Key Vault                  | `kv-{short}-{env}-{suffix}`        | `kv-malta-dev-a1b2`           | `kv-malta-dev-{uniqueSuffix}`  |
-| Storage Account            | `st{short}{env}{suffix}`           | `stmaltadeva1b2`              | `stmaltadev{uniqueSuffix}`     |
-| Container Registry         | `acr{short}{env}{suffix}`          | `acrmaltadeva1b2`             | `acrmaltadev{uniqueSuffix}`    |
-| Container Apps Environment | `cae-{project}-{env}`              | `cae-malta-catering-dev`      | `cae-malta-catering-dev`       |
-| Container App              | `ca-{project}-{env}`               | `ca-malta-catering-dev`       | `ca-malta-catering-dev`        |
-| Consumption Budget         | `budget-{project}-{env}`           | `budget-malta-catering-dev`   | `budget-malta-catering-dev`    |
+| Resource                | Pattern                     | Example (dev)               | Generated Name                |
+| ----------------------- | --------------------------- | --------------------------- | ----------------------------- |
+| Resource Group          | `rg-{project}-{env}`        | `rg-malta-catering-dev`     | `rg-malta-catering-dev`       |
+| Log Analytics Workspace | `log-{project}-{env}`       | `log-malta-catering-dev`    | `log-malta-catering-dev`      |
+| Application Insights    | `appi-{project}-{env}`      | `appi-malta-catering-dev`   | `appi-malta-catering-dev`     |
+| Virtual Network         | `vnet-{project}-{env}`      | `vnet-malta-catering-dev`   | `vnet-malta-catering-dev`     |
+| App Service Plan        | `asp-{project}-{env}`       | `asp-malta-catering-dev`    | `asp-malta-catering-dev`      |
+| Web App                 | `app-{project}-{env}`       | `app-malta-catering-dev`    | `app-malta-catering-dev`      |
+| Key Vault               | `kv-{short}-{env}-{suffix}` | `kv-malta-dev-a1b2`         | `kv-malta-dev-{uniqueSuffix}` |
+| Storage Account         | `st{short}{env}{suffix}`    | `stmaltadeva1b2`            | `stmaltadev{uniqueSuffix}`    |
+| Container Registry      | `acr{short}{env}{suffix}`   | `acrmaltadeva1b2`           | `acrmaltadev{uniqueSuffix}`   |
+| Consumption Budget      | `budget-{project}-{env}`    | `budget-malta-catering-dev` | `budget-malta-catering-dev`   |
 
 > `{suffix}` = first 4-6 characters of `uniqueString(resourceGroup().id)`, applied only to
 > globally-unique names (Storage Account, Key Vault, Container Registry).
 
 ### Governance Tag Contract (9 Required Tags on Resource Group)
 
-| Tag                  | Source    | Value (dev)                  |
-| -------------------- | --------- | ---------------------------- |
-| `environment`        | Parameter | `dev`                        |
-| `owner`              | Parameter | *(user-supplied)*            |
-| `costcenter`         | Parameter | *(user-supplied)*            |
-| `application`        | Parameter | `malta-catering`             |
-| `workload`           | Parameter | `ordering-portal`            |
-| `sla`                | Parameter | `99.0`                       |
-| `backup-policy`      | Parameter | `none-demo`                  |
-| `maint-window`       | Parameter | `sun-02-06`                  |
-| `technical-contact`  | Parameter | *(user-supplied email)*      |
+| Tag                 | Source    | Value (dev)             |
+| ------------------- | --------- | ----------------------- |
+| `environment`       | Parameter | `dev`                   |
+| `owner`             | Parameter | _(user-supplied)_       |
+| `costcenter`        | Parameter | _(user-supplied)_       |
+| `application`       | Parameter | `malta-catering`        |
+| `workload`          | Parameter | `ordering-portal`       |
+| `sla`               | Parameter | `99.0`                  |
+| `backup-policy`     | Parameter | `none-demo`             |
+| `maint-window`      | Parameter | `sun-02-06`             |
+| `technical-contact` | Parameter | _(user-supplied email)_ |
 
 > An additional `tech-contact` tag (same value as `technical-contact`) is included on the
 > resource group to bridge the governance mismatch between the Deny policy and the tag
@@ -458,34 +535,39 @@ Source: [04-runtime-diagram.py](./04-runtime-diagram.py) (Python `diagrams` libr
 
 ## 🔐 Security Configuration
 
-| Resource                   | Security Setting                  | Value                                      |
-| -------------------------- | --------------------------------- | ------------------------------------------ |
-| Storage Account            | `minimumTlsVersion`               | `TLS1_2`                                   |
-| Storage Account            | `supportsHttpsTrafficOnly`        | `true`                                     |
-| Storage Account            | `allowBlobPublicAccess`           | `false`                                    |
-| Storage Account            | `allowSharedKeyAccess`            | `false` (Entra ID only)                    |
-| Key Vault                  | `enableRbacAuthorization`         | `true`                                     |
-| Key Vault                  | `enablePurgeProtection`           | `true`                                     |
-| Key Vault                  | `enableSoftDelete`                | `true` (7-day retention)                   |
-| Container Registry         | `adminUserEnabled`                | `false`                                    |
-| Container App              | `managedIdentities.systemAssigned`| `true`                                     |
-| Container App              | Ingress transport                 | `http` (TLS terminated at platform level)  |
-| Container App → Key Vault  | Role: Key Vault Secrets User      | System-assigned MI                         |
-| Container App → Storage    | Role: Storage Table Data Contributor | System-assigned MI                      |
-| Container App → ACR        | Role: AcrPull                     | System-assigned MI                         |
-| All resources              | Diagnostic settings               | All logs + metrics → Log Analytics         |
+| Resource            | Security Setting                     | Value                                                  |
+| ------------------- | ------------------------------------ | ------------------------------------------------------ |
+| Storage Account     | `minimumTlsVersion`                  | `TLS1_2`                                               |
+| Storage Account     | `supportsHttpsTrafficOnly`           | `true`                                                 |
+| Storage Account     | `allowBlobPublicAccess`              | `false`                                                |
+| Storage Account     | `allowSharedKeyAccess`               | `false` (Entra ID only)                                |
+| Storage Account     | Private Endpoint                     | `snet-pe` subnet, `privatelink.table.core.windows.net` |
+| Key Vault           | `enableRbacAuthorization`            | `true`                                                 |
+| Key Vault           | `enablePurgeProtection`              | `true`                                                 |
+| Key Vault           | `enableSoftDelete`                   | `true` (7-day retention)                               |
+| Key Vault           | Private Endpoint                     | `snet-pe` subnet, `privatelink.vaultcore.azure.net`    |
+| Container Registry  | `adminUserEnabled`                   | `false`                                                |
+| Container Registry  | SKU                                  | `Premium` (required for PE)                            |
+| Container Registry  | Private Endpoint                     | `snet-pe` subnet, `privatelink.azurecr.io`             |
+| Web App             | `managedIdentities.systemAssigned`   | `true`                                                 |
+| Web App             | `http20Enabled`                      | `true`                                                 |
+| Web App             | VNet Integration                     | `snet-app` subnet delegation                           |
+| Web App → Key Vault | Role: Key Vault Secrets User         | System-assigned MI                                     |
+| Web App → Storage   | Role: Storage Table Data Contributor | System-assigned MI                                     |
+| Web App → ACR       | Role: AcrPull                        | System-assigned MI                                     |
+| All resources       | Diagnostic settings                  | All logs + metrics → Log Analytics                     |
 
 ---
 
 ## ⏱️ Estimated Implementation Time
 
-| Task                           | Estimated Duration |
-| ------------------------------ | ------------------ |
-| Bicep modules (8 modules)      | 45 minutes         |
-| Parameter file + deploy script | 15 minutes         |
-| Testing (lint + build + what-if) | 15 minutes       |
-| Deployment (4 phases)          | 15 minutes         |
-| **Total**                      | **~90 minutes**    |
+| Task                             | Estimated Duration |
+| -------------------------------- | ------------------ |
+| Bicep modules (10 modules)       | 60 minutes         |
+| Parameter file + deploy script   | 15 minutes         |
+| Testing (lint + build + what-if) | 15 minutes         |
+| Deployment (5 phases)            | 20 minutes         |
+| **Total**                        | **~110 minutes**   |
 
 ---
 
@@ -494,18 +576,18 @@ Source: [04-runtime-diagram.py](./04-runtime-diagram.py) (Python `diagrams` libr
 > [!IMPORTANT]
 > **📋 Implementation Plan Ready**
 >
-> | Metric                           | Value                        |
-> | -------------------------------- | ---------------------------- |
-> | Azure resources planned          | 8                            |
-> | Bicep modules to create          | 8 (7 AVM + 1 native)        |
-> | Deployment phases                | 4 (Foundation → Security/Data → Compute → Budget) |
-> | Governance constraints addressed | ✅ 9-tag RG policy + Storage/KV hardening |
-> | CAF naming conventions applied   | ✅                           |
-> | Cost monitoring included         | ✅ Budget with 3 forecast alerts |
+> | Metric                           | Value                                                          |
+> | -------------------------------- | -------------------------------------------------------------- |
+> | Azure resources planned          | ~12                                                            |
+> | Bicep modules to create          | 10 (9 AVM + 1 native)                                          |
+> | Deployment phases                | 5 (Foundation → Networking → Security/Data → Compute → Budget) |
+> | Governance constraints addressed | ✅ 9-tag RG policy + Storage/KV hardening + VNet/PE            |
+> | CAF naming conventions applied   | ✅                                                             |
+> | Cost monitoring included         | ✅ Budget with 3 forecast alerts                               |
 >
 > - [ ] **Approved** — proceed to Bicep CodeGen (Step 5)
-> - **Approver**: ________________
-> - **Date**: ________________
+> - **Approver**: ******\_\_\_\_******
+> - **Date**: ******\_\_\_\_******
 >
 > Reply **"approve"** to proceed to Bicep CodeGen, or provide feedback.
 
@@ -522,7 +604,10 @@ Source: [04-runtime-diagram.py](./04-runtime-diagram.py) (Python `diagrams` libr
 | Bicep Best Practices   | [Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/best-practices)                                |
 | CAF Naming Conventions | [Naming Rules](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)         |
 | Resource Abbreviations | [Abbreviations](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) |
-| Container Apps AVM     | [Module Docs](https://github.com/Azure/bicep-registry-modules/tree/main/avm/res/app/container-app)                           |
+| Web App AVM            | [Module Docs](https://github.com/Azure/bicep-registry-modules/tree/main/avm/res/web/site)                                     |
+| App Service Plan AVM   | [Module Docs](https://github.com/Azure/bicep-registry-modules/tree/main/avm/res/web/serverfarm)                               |
+| Virtual Network AVM    | [Module Docs](https://github.com/Azure/bicep-registry-modules/tree/main/avm/res/network/virtual-network)                      |
+| Private DNS Zone AVM   | [Module Docs](https://github.com/Azure/bicep-registry-modules/tree/main/avm/res/network/private-dns-zone)                     |
 | Consumption Budgets    | [Template Reference](https://learn.microsoft.com/azure/templates/microsoft.consumption/budgets)                               |
 
 ---

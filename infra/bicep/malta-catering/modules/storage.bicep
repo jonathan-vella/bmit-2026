@@ -1,8 +1,13 @@
 param name string
 param location string
 param tags object = {}
-param publicNetworkAccess string
 param logAnalyticsWorkspaceResourceId string
+
+@description('Subnet resource ID for the private endpoint.')
+param privateEndpointSubnetResourceId string
+
+@description('Private DNS zone resource ID for Table Storage.')
+param privateDnsZoneResourceId string
 
 module storageAccount 'br/public:avm/res/storage/storage-account:0.32.0' = {
   name: 'deploy-storage-account'
@@ -17,7 +22,24 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.32.0' = {
     allowBlobPublicAccess: false
     allowSharedKeyAccess: false
     defaultToOAuthAuthentication: true
-    publicNetworkAccess: publicNetworkAccess
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Deny'
+    }
+    privateEndpoints: [
+      {
+        service: 'table'
+        subnetResourceId: privateEndpointSubnetResourceId
+        privateDnsZoneGroup: {
+          privateDnsZoneGroupConfigs: [
+            {
+              privateDnsZoneResourceId: privateDnsZoneResourceId
+            }
+          ]
+        }
+      }
+    ]
     diagnosticSettings: [
       {
         name: 'send-to-law'

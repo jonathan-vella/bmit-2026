@@ -18,3 +18,5 @@ param budgetContactEmails = [
 param budgetStartDate = '2026-05-01'
 param containerImageName = 'malta-catering-app'
 param containerImageTag = 'latest'
+param appServicePlanSku = 'P0V3'
+param enableStagingSlot = true

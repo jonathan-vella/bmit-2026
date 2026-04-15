@@ -3,7 +3,7 @@ param(
     [string]$ResourceGroupName = 'rg-malta-catering-dev',
     [string]$Location = 'swedencentral',
     [string]$Environment = 'dev',
-    [ValidateSet('all', 'foundation', 'security-data-images', 'compute', 'cost-monitoring')]
+    [ValidateSet('all', 'foundation', 'networking', 'security-data-images', 'compute', 'cost-monitoring')]
     [string]$Phase = 'all',
     [Parameter(Mandatory)]
     [string]$Owner,
@@ -22,6 +22,8 @@ param(
     [string]$BudgetStartDate = '2026-05-01',
     [string]$ContainerImageName = 'malta-catering-app',
     [string]$ContainerImageTag = 'latest',
+    [string]$AppServicePlanSku = 'S1',
+    [switch]$EnableStagingSlot,
     [switch]$WhatIfDeployment,
     [switch]$SkipApproval
 )
@@ -75,7 +77,7 @@ try {
     $budgetEmailsJson = $BudgetContactEmails | ConvertTo-Json -Compress
 
     $phases = if ($Phase -eq 'all') {
-        @('foundation', 'security-data-images', 'compute', 'cost-monitoring')
+        @('foundation', 'networking', 'security-data-images', 'compute', 'cost-monitoring')
     } else {
         @($Phase)
     }
@@ -102,6 +104,8 @@ try {
             '--parameters', "budgetStartDate=$BudgetStartDate",
             '--parameters', "containerImageName=$ContainerImageName",
             '--parameters', "containerImageTag=$ContainerImageTag",
+            '--parameters', "appServicePlanSku=$AppServicePlanSku",
+            '--parameters', "enableStagingSlot=$($EnableStagingSlot.IsPresent.ToString().ToLower())",
             '--parameters', "budgetContactEmails=$budgetEmailsJson"
         )
 

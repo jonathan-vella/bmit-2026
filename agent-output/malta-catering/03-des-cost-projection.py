@@ -63,12 +63,12 @@ def generate_cost_projection_chart(
     print(f"Generated: {output_path}")
 
 
-# 5% monthly growth in transactions; slight cost increase
+# 5% monthly growth in transactions; slight cost increase on variable components
 months = ["Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6"]
-costs = [24.53, 25.30, 26.10, 26.94, 27.81, 28.72]
+costs = [154.87, 155.31, 155.77, 156.25, 156.76, 157.29]
 generate_cost_projection_chart(
     months, costs,
     output_path="agent-output/malta-catering/03-des-cost-projection.png",
-    budget_cap=100,
-    growth_assumption="Based on 5% monthly transaction growth",
+    budget_cap=500,
+    growth_assumption="Based on 5% monthly transaction growth (fixed compute dominates)",
 )

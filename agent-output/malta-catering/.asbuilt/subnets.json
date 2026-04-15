@@ -1,0 +1,88 @@
+[
+  {
+    "addressPrefix": "10.0.0.0/27",
+    "delegations": [
+      {
+        "actions": [
+          "Microsoft.Network/virtualNetworks/subnets/action"
+        ],
+        "etag": "W/\"bdd1971b-9e34-4641-8184-e53efc2ba7b2\"",
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-app-service/delegations/Microsoft.Web/serverFarms",
+        "name": "Microsoft.Web/serverFarms",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev",
+        "serviceName": "Microsoft.Web/serverFarms",
+        "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+      }
+    ],
+    "etag": "W/\"bdd1971b-9e34-4641-8184-e53efc2ba7b2\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-app-service",
+    "name": "snet-app-service",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "rg-malta-catering-dev",
+    "serviceAssociationLinks": [
+      {
+        "allowDelete": false,
+        "etag": "W/\"bdd1971b-9e34-4641-8184-e53efc2ba7b2\"",
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-app-service/serviceAssociationLinks/AppServiceLink",
+        "link": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Web/serverfarms/asp-malta-catering-dev",
+        "linkedResourceType": "Microsoft.Web/serverfarms",
+        "locations": [],
+        "name": "AppServiceLink",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev",
+        "type": "Microsoft.Network/virtualNetworks/subnets/serviceAssociationLinks"
+      }
+    ],
+    "serviceEndpoints": [],
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "10.0.0.32/27",
+    "delegations": [],
+    "etag": "W/\"bdd1971b-9e34-4641-8184-e53efc2ba7b2\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-private-endpoints",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/networkInterfaces/PEP-ACRMALTADEVB6LG3L-REGISTRY-0.NIC.B39F715A-A2BA-4E11-ADBB-2971198C52AE/ipConfigurations/PRIVATEENDPOINTIPCONFIG.57B1072C-85A2-408B-AC9A-DEA1D754B02C",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      },
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/networkInterfaces/PEP-ACRMALTADEVB6LG3L-REGISTRY-0.NIC.B39F715A-A2BA-4E11-ADBB-2971198C52AE/ipConfigurations/PRIVATEENDPOINTIPCONFIG.B5D13C60-E330-40F8-B56D-B9580C98D32F",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      },
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/networkInterfaces/PEP-KV-MALTA-DEV-B6LG3L-VAULT-0.NIC.85E10D62-6221-4901-A3B5-231ABB08C658/ipConfigurations/PRIVATEENDPOINTIPCONFIG.518DB8B3-8D96-445C-A674-9802CA58B3C4",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      },
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/networkInterfaces/PEP-STMALTADEVB6LG3L-TABLE-0.NIC.C8D28CE5-447A-47AC-A5DA-3BCF96275C6D/ipConfigurations/PRIVATEENDPOINTIPCONFIG.BC12646A-2B7B-439F-AF73-1E82E79BA0B3",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      }
+    ],
+    "name": "snet-private-endpoints",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateEndpoints": [
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/privateEndpoints/PEP-ACRMALTADEVB6LG3L-REGISTRY-0",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      },
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/privateEndpoints/PEP-KV-MALTA-DEV-B6LG3L-VAULT-0",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      },
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/RG-MALTA-CATERING-DEV/providers/Microsoft.Network/privateEndpoints/PEP-STMALTADEVB6LG3L-TABLE-0",
+        "resourceGroup": "RG-MALTA-CATERING-DEV"
+      }
+    ],
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "purpose": "PrivateEndpoints",
+    "resourceGroup": "rg-malta-catering-dev",
+    "serviceEndpoints": [],
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  }
+]

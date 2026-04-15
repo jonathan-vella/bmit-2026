@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 @allowed([
   'all'
   'foundation'
+  'networking'
   'security-data-images'
   'compute'
   'cost-monitoring'
@@ -31,10 +32,12 @@ param budgetStartDate string = '2026-05-01'
 
 param containerImageName string = 'malta-catering-app'
 param containerImageTag string = 'latest'
-param containerAppsWorkloadProfileName string = 'dedicated-d4'
-param containerAppsWorkloadProfileType string = 'D4'
-param containerAppsWorkloadProfileMinCount int = 1
-param containerAppsWorkloadProfileMaxCount int = 1
+
+@description('App Service Plan SKU name.')
+param appServicePlanSku string = 'S1'
+
+@description('Enable staging deployment slot on the web app.')
+param enableStagingSlot bool = true
 
 var uniqueSuffix = take(toLower(uniqueString(resourceGroup().id)), 6)
 var shortProject = take(replace(toLower(project), '-', ''), 5)
@@ -59,6 +62,14 @@ var baselineTags = {
 
 var resourceTags = union(governanceTags, baselineTags)
 
+var deployNetworking = contains([
+  'all'
+  'networking'
+  'security-data-images'
+  'compute'
+  'cost-monitoring'
+], phase)
+
 var deploySecurityDataImages = contains([
   'all'
   'security-data-images'
@@ -79,12 +90,15 @@ var deployCostMonitoring = contains([
 
 var logAnalyticsName = 'log-${project}-${deploymentEnvironment}'
 var appInsightsName = 'appi-${project}-${deploymentEnvironment}'
+var vnetName = 'vnet-${project}-${deploymentEnvironment}'
 var keyVaultName = take('kv-${shortProject}-${deploymentEnvironment}-${uniqueSuffix}', 24)
 var storageAccountName = take('st${shortProject}${deploymentEnvironment}${uniqueSuffix}', 24)
 var containerRegistryName = take('acr${shortProject}${deploymentEnvironment}${uniqueSuffix}', 24)
-var containerAppsEnvironmentName = 'cae-${project}-${deploymentEnvironment}'
-var containerAppName = 'ca-${project}-${deploymentEnvironment}'
+var appServicePlanName = 'asp-${project}-${deploymentEnvironment}'
+var webAppName = 'app-${project}-${deploymentEnvironment}'
 var budgetName = 'budget-${project}-${deploymentEnvironment}'
+
+// ── Phase 1: Foundation ─────────────────────────────────────────────────────
 
 module logAnalytics 'modules/log-analytics.bicep' = {
   name: 'foundation-log-analytics'
@@ -105,15 +119,38 @@ module appInsights 'modules/app-insights.bicep' = {
   }
 }
 
+// ── Phase 2: Networking ─────────────────────────────────────────────────────
+
+module virtualNetwork 'modules/virtual-network.bicep' = if (deployNetworking) {
+  name: 'networking-virtual-network'
+  params: {
+    name: vnetName
+    location: location
+    tags: resourceTags
+    logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
+  }
+}
+
+module privateDnsZones 'modules/private-dns-zones.bicep' = if (deployNetworking) {
+  name: 'networking-private-dns-zones'
+  params: {
+    tags: resourceTags
+    virtualNetworkResourceId: virtualNetwork!.outputs.resourceId
+  }
+}
+
+// ── Phase 3: Security, Data & Images ────────────────────────────────────────
+
 module keyVault 'modules/key-vault.bicep' = if (deploySecurityDataImages) {
   name: 'security-key-vault'
   params: {
     name: keyVaultName
     location: location
     tags: resourceTags
-    publicNetworkAccess: deploymentEnvironment == 'prod' ? 'Disabled' : 'Enabled'
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
     appInsightsConnectionString: appInsights.outputs.connectionString
+    privateEndpointSubnetResourceId: virtualNetwork!.outputs.privateEndpointsSubnetResourceId
+    privateDnsZoneResourceId: privateDnsZones!.outputs.keyVaultDnsZoneResourceId
   }
 }
 
@@ -123,8 +160,9 @@ module storage 'modules/storage.bicep' = if (deploySecurityDataImages) {
     name: storageAccountName
     location: location
     tags: resourceTags
-    publicNetworkAccess: deploymentEnvironment == 'prod' ? 'Disabled' : 'Enabled'
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
+    privateEndpointSubnetResourceId: virtualNetwork!.outputs.privateEndpointsSubnetResourceId
+    privateDnsZoneResourceId: privateDnsZones!.outputs.storageTableDnsZoneResourceId
   }
 }
 
@@ -135,32 +173,32 @@ module containerRegistry 'modules/container-registry.bicep' = if (deploySecurity
     location: location
     tags: resourceTags
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
+    privateEndpointSubnetResourceId: virtualNetwork!.outputs.privateEndpointsSubnetResourceId
+    privateDnsZoneResourceId: privateDnsZones!.outputs.acrDnsZoneResourceId
   }
 }
 
-module containerAppsEnvironment 'modules/container-apps-env.bicep' = if (deployCompute) {
-  name: 'compute-container-apps-environment'
+// ── Phase 4: Compute ────────────────────────────────────────────────────────
+
+module appServicePlan 'modules/app-service-plan.bicep' = if (deployCompute) {
+  name: 'compute-app-service-plan'
   params: {
-    name: containerAppsEnvironmentName
+    name: appServicePlanName
     location: location
     tags: resourceTags
-    publicNetworkAccess: deploymentEnvironment == 'prod' ? 'Disabled' : 'Enabled'
+    skuName: appServicePlanSku
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
-    workloadProfileName: containerAppsWorkloadProfileName
-    workloadProfileType: containerAppsWorkloadProfileType
-    workloadProfileMinCount: containerAppsWorkloadProfileMinCount
-    workloadProfileMaxCount: containerAppsWorkloadProfileMaxCount
   }
 }
 
-module containerApp 'modules/container-app.bicep' = if (deployCompute) {
-  name: 'compute-container-app'
+module webApp 'modules/web-app.bicep' = if (deployCompute) {
+  name: 'compute-web-app'
   params: {
-    name: containerAppName
+    name: webAppName
     location: location
     tags: resourceTags
-    environmentResourceId: containerAppsEnvironment!.outputs.resourceId
-    workloadProfileName: containerAppsWorkloadProfileName
+    serverFarmResourceId: appServicePlan!.outputs.resourceId
+    virtualNetworkSubnetId: virtualNetwork!.outputs.appServiceSubnetResourceId
     keyVaultName: keyVault!.outputs.resourceName
     keyVaultUri: keyVault!.outputs.uri
     storageAccountName: storage!.outputs.resourceName
@@ -169,8 +207,11 @@ module containerApp 'modules/container-app.bicep' = if (deployCompute) {
     logAnalyticsWorkspaceResourceId: logAnalytics.outputs.resourceId
     containerImageName: containerImageName
     containerImageTag: containerImageTag
+    enableStagingSlot: enableStagingSlot
   }
 }
+
+// ── Phase 5: Cost Monitoring ────────────────────────────────────────────────
 
 module budget 'modules/budget.bicep' = if (deployCostMonitoring) {
   name: 'cost-budget'
@@ -182,12 +223,14 @@ module budget 'modules/budget.bicep' = if (deployCostMonitoring) {
   }
 }
 
+// ── Outputs ─────────────────────────────────────────────────────────────────
+
 output logAnalyticsResourceId string = logAnalytics.outputs.resourceId
 output appInsightsConnectionString string = appInsights.outputs.connectionString
+output vnetResourceId string = deployNetworking ? virtualNetwork!.outputs.resourceId : ''
 output keyVaultUri string = deploySecurityDataImages ? keyVault!.outputs.uri : ''
 output storageAccountResourceName string = deploySecurityDataImages ? storage!.outputs.resourceName : ''
 output containerRegistryLoginServer string = deploySecurityDataImages ? containerRegistry!.outputs.loginServer : ''
-output containerAppsEnvironmentDefaultDomain string = deployCompute ? containerAppsEnvironment!.outputs.defaultDomain : ''
-output containerAppFqdn string = deployCompute ? containerApp!.outputs.fqdn : ''
-output containerAppPrincipalId string = deployCompute ? containerApp!.outputs.principalId : ''
+output webAppDefaultHostname string = deployCompute ? webApp!.outputs.defaultHostname : ''
+output webAppPrincipalId string = deployCompute ? webApp!.outputs.principalId : ''
 output budgetResourceId string = deployCostMonitoring ? budget!.outputs.budgetId : ''

@@ -1,7 +1,7 @@
-# ADR-0003: Public Network Posture — No Private Endpoints for Dev/Demo (Provisional)
+# ADR-0003: VNet Integration with Private Endpoints for Dev Environment
 
 ![Step](https://img.shields.io/badge/Step-3-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Provisional-orange?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Accepted-green?style=for-the-badge)
 ![Type](https://img.shields.io/badge/Type-ADR-purple?style=for-the-badge)
 
 <details open>
@@ -17,128 +17,133 @@
 
 </details>
 
-> Status: **Provisional** — must be revalidated after Step 3.5 Governance Discovery
-> Date: 2026-04-14
+> Status: **Accepted (Revised 2026-04-15 — replaces original public-endpoint posture)**
+> Date: 2026-04-15
 > Deciders: Architecture Agent (malta-catering project)
 > See also: ARC-004 in `02-architecture-assessment.md`
 
 ## 🔍 Context
 
 The Malta Catering portal uses three data-plane Azure services that support private
-endpoint connectivity: **Azure Storage Account**, **Azure Key Vault**, and the
-**Container Apps Environment**. Private endpoints would:
+endpoint connectivity: **Azure Storage Account**, **Azure Key Vault**, and **Azure
+Container Registry (ACR)**. The original ADR-0003 accepted public endpoints as a
+provisional trade-off for the dev/demo environment.
 
-- Route traffic between Container Apps and Storage/Key Vault through the Azure
+The switch from Container Apps Consumption to **App Service S1** enables **native
+VNet integration at no additional compute cost** — S1 supports regional VNet
+integration via a delegated subnet. This eliminates the primary cost barrier
+(Dedicated plan ~$50+/mo) that made private endpoints prohibitive under the
+original architecture.
+
+Private endpoints are now used for all backend services:
+
+- Route traffic between App Service and Storage/Key Vault/ACR through the Azure
   backbone (no public internet traversal)
-- Disable public network access on Storage and Key Vault, reducing attack surface
-- Require a VNet, private DNS zones, and VNet integration for Container Apps
+- Disable public network access on Storage, Key Vault, and ACR, reducing attack
+  surface
+- Private DNS zones provide name resolution for private endpoint FQDNs
 
-Additional cost for full private endpoint configuration:
+Additional cost for VNet + private endpoint configuration:
+
 - VNet: free
-- Private Endpoint for Storage: ~$7.30/month
-- Private Endpoint for Key Vault: ~$7.30/month
-- Container Apps VNet integration: requires Dedicated plan (~$50+/mo minimum)
+- 3 Private Endpoints (Storage, Key Vault, ACR): 3 × ~$7.20/mo = ~$21.60/mo
+- 3 Private DNS Zones: 3 × $0.50/mo = ~$1.50/mo
 
-Total additional cost if all PEs implemented: **+$64.60/month minimum** — a
-**263% cost increase** over the baseline ~$24.53/month.
-
-Governance-level Azure Policies (Step 3.5) may mandate private endpoints for
-certain resource types (e.g., `require-private-endpoint-storage` or
-`deny-public-access-storage`). This ADR documents the conscious dev/demo trade-off
-and the production upgrade path.
+Total additional networking cost: **~$23.10/month** — modest compared to the
+original $64.60/mo estimate under Container Apps Dedicated.
 
 ## ✅ Decision
 
-**ARC-004**: For this dev/demo environment, accept **public network access** on all
-services. No private endpoints, no VNet integration, no WAF.
+**ARC-004 resolved**: Migrate from public endpoints to **VNet integration with
+private endpoints** for all backend services.
 
-- Storage Account: public network access enabled (with Managed Identity auth)
-- Key Vault: public network access enabled (with RBAC + Managed Identity)
-- Container Apps: public ingress endpoint (managed TLS)
-- No Azure WAF or DDoS Standard protection
-
-**This decision is provisional**. It must be reviewed after Step 3.5 Governance
-Discovery confirms or denies any subscription-level Azure Policy mandating
-private endpoints or blocking public access.
+- **App Service S1** with VNet integration via delegated subnet
+  (`snet-app-service`, `10.0.0.0/27`)
+- **Private endpoints** for Key Vault, Storage Account (table), and ACR in
+  `snet-private-endpoints` (`10.0.0.32/27`)
+- **3 private DNS zones** linked to the VNet:
+  - `privatelink.vaultcore.azure.net`
+  - `privatelink.table.core.windows.net`
+  - `privatelink.azurecr.io`
+- **Public inbound** to App Service only (HTTPS via App Service default hostname)
+- **All backend traffic** routed through VNet (`vnetRouteAllEnabled: true`)
 
 ## 🔄 Alternatives Considered
 
-| Option                             | Pros                                              | Cons                                                    | WAF Impact                               |
-| ---------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------- |
-| **Public endpoints (selected)**    | Zero additional cost; simple config               | Larger attack surface; blocked by strict governance     | Cost: ↑↑, Security: ↓                   |
-| PE for Storage + KV (CA Consumption) | Secures data plane traffic                      | +$14.60/mo; CA Consumption cannot join VNet natively    | Cost: →, Security: ↑, Operations: ↓     |
-| Full PE + CA Dedicated plan        | Gold standard network isolation                   | +$64.60/mo minimum (263% increase)                      | Cost: ↓↓, Security: ↑↑, Operations: ↓  |
-| Service Endpoints (Storage + KV)   | Near-zero cost; scopes access to VNet             | Requires CA VNet integration; limited to same-region    | Cost: →, Security: ↑, Operations: →     |
-| Azure Firewall + SNAT              | Full egress control                               | ~$140/mo for Firewall Standard; overkill for demo       | Cost: ↓↓↓, Security: ↑↑                 |
+| Option                                    | Pros                                         | Cons                                                | WAF Impact                           |
+| ----------------------------------------- | -------------------------------------------- | --------------------------------------------------- | ------------------------------------ |
+| **VNet + PE for all backends (selected)** | Backend isolation; resolves ARC-004; ~$23/mo | Added VNet/DNS complexity                           | Cost: →, Security: ↑↑, Operations: ↓ |
+| Public endpoints (original ADR-0003)      | Zero additional cost; simple config          | Larger attack surface; blocked by strict governance | Cost: ↑↑, Security: ↓                |
+| Service Endpoints (Storage + KV)          | Near-zero cost; scopes access to VNet        | Does not cover ACR; limited to same-region          | Cost: →, Security: ↑, Operations: →  |
+| Azure Firewall + SNAT                     | Full egress control                          | ~$140/mo for Firewall Standard; overkill for demo   | Cost: ↓↓↓, Security: ↑↑              |
 
 ## ⚖️ Consequences
 
 ### Positive
 
-- No additional networking cost — keeps total at ~$24.53/month
-- No VNet or Private DNS Zone complexity to manage
-- Container Apps Consumption plan retains scale-to-zero behavior (Dedicated plan
-  cannot scale to zero)
-- Simpler Bicep templates — no PE, DNS zone, or VNet integration modules needed
+- Backend services (Storage, Key Vault, ACR) are **not exposed to the public
+  internet** — accessible only via private endpoints within the VNet
+- DNS resolution for backend services uses **private DNS zones**, ensuring
+  traffic stays on the Azure backbone
+- **ARC-004 risk (public endpoint exposure) is resolved** — no longer provisional
+- Managed Identity authentication remains in place as a defense-in-depth layer
 
 ### Negative
 
-- Storage Account and Key Vault are reachable from public internet (Managed
-  Identity auth still required — no anonymous access possible)
-- WAF/DDoS Standard protection absent — low-traffic demo does not justify cost,
-  but a targeted attack could cause brief unavailability
-- If governance mandates private endpoints: architecture requires significant
-  rework — VNet, Dedicated plan, PE modules, private DNS zones
+- Added infrastructure complexity: VNet, 2 subnets, 3 private endpoints,
+  3 private DNS zones — more Bicep modules to author and maintain
+- Additional cost of **~$23.10/month** (3 PE + 3 DNS zones)
+- Debugging connectivity issues requires understanding of VNet routing and
+  private DNS resolution
 
-### Neutral
+### Risk Mitigated
 
-- Managed Identity authentication provides strong access control independent
-  of network posture — a misconfigured network doesn't grant access to data
+- **ARC-004** (public endpoint exposure) from `02-architecture-assessment.md`
+  is now fully resolved by this revised decision
 
 ## 🏛️ WAF Pillar Analysis
 
-| Pillar      | Impact | Notes                                                                               |
-| ----------- | ------ | ----------------------------------------------------------------------------------- |
-| Security    | ↓      | Public endpoints increase attack surface; MI auth mitigates data access risk        |
-| Reliability | →      | Network topology change has no reliability impact; public endpoints are more robust  |
-| Performance | ↑      | No VNet traversal latency; direct Azure backbone routing between services            |
-| Cost        | ↑↑     | Avoids ~$64.60/mo for full private endpoint architecture                             |
-| Operations  | ↑      | No VNet, DNS zone, or PE resources to manage; simpler incident response              |
+| Pillar      | Impact | Notes                                                                             |
+| ----------- | ------ | --------------------------------------------------------------------------------- |
+| Security    | ↑↑     | Backend services isolated in VNet; public internet exposure eliminated            |
+| Reliability | →      | No material reliability change; private endpoints are highly available            |
+| Performance | →      | VNet routing adds negligible latency; backbone traffic remains fast               |
+| Cost        | ↓      | +~$23.10/mo for PE + DNS zones (modest vs. original $64.60 CA Dedicated estimate) |
+| Operations  | ↓      | Additional VNet, DNS zone, and PE resources to manage and troubleshoot            |
 
 ## 🔒 Compliance Considerations
 
-- **GDPR**: Public endpoints do not violate GDPR as long as data is encrypted
-  in transit (TLS 1.2, enforced) and access is authenticated (Managed Identity)
-- **Azure Policy**: Some enterprise tenants enforce `deny-public-network-access`
-  on Key Vault and Storage — this ADR will be superseded if such policies exist
-  in the target subscription (check in Step 3.5 Governance Discovery)
+- **GDPR**: Private endpoints strengthen GDPR posture — backend data services
+  are no longer reachable from the public internet; TLS 1.2 enforced
+- **Azure Policy**: VNet + PE architecture satisfies common enterprise policies
+  such as `deny-public-network-access` on Key Vault and Storage
 - **PCI DSS**: Not in scope for this project (cash-on-delivery payment model)
-- **SOC 2 / ISO 27001**: Not required for dev/demo; production certification
-  would require private endpoints and network segmentation
+- **SOC 2 / ISO 27001**: Private endpoints and network segmentation provide a
+  foundation for future compliance certification if needed
 
 ## 📝 Implementation Notes
 
-- This ADR is **provisional** — revalidate after Step 3.5 Governance Discovery
-- If governance mandates private endpoints, the fallback architecture is:
-  1. Upgrade Container Apps to Dedicated workload profile (for VNet integration)
-  2. Create VNet in `swedencentral` with 2 subnets (CA, PE)
-  3. Add Private Endpoint for Storage Account (`blob`, `table` sub-resources)
-  4. Add Private Endpoint for Key Vault (`vault` sub-resource)
-  5. Deploy Private DNS Zones (`privatelink.blob.core.windows.net`,
-     `privatelink.table.core.windows.net`, `privatelink.vaultcore.azure.net`)
-  6. Total additional cost: ~$64.60/month
-- For production (governance-permitting public endpoints): add Azure Front Door
-  Standard with WAF policy (~$36/mo) before go-live to protect Container Apps
-  public ingress
+- This ADR **supersedes** the original provisional ADR-0003 (public endpoints)
+- Networking cost breakdown:
+  - 3 Private Endpoints × $7.20/mo = **$21.60/mo**
+  - 3 Private DNS Zones × $0.50/mo = **$1.50/mo**
+  - Total networking addition: **~$23.10/mo**
+- Bicep modules required: `vnet.bicep`, `private-endpoint.bicep`,
+  `private-dns-zone.bicep` (or equivalent AVM modules)
+- VNet address space: `10.0.0.0/24` with two subnets:
+  - `snet-app-service` (`10.0.0.0/27`) — delegated to `Microsoft.Web/serverFarms`
+  - `snet-private-endpoints` (`10.0.0.32/27`) — hosts PE NICs
+- For production: consider adding Azure Front Door Standard with WAF policy
+  (~$36/mo) to protect the App Service public ingress
 
 ---
 
 <div align="center">
 
-> Generated by design agent | 2026-04-14
+> Generated by design agent | 2026-04-15 (revised)
 
-| ⬅️ Previous                                                                         | 📑 Index            | Next ➡️             |
-| ----------------------------------------------------------------------------------- | ------------------- | ------------------- |
+| ⬅️ Previous                                                                                  | 📑 Index            | Next ➡️             |
+| -------------------------------------------------------------------------------------------- | ------------------- | ------------------- |
 | [03-des-adr-0002-table-storage-persistence.md](03-des-adr-0002-table-storage-persistence.md) | [README](README.md) | [README](README.md) |
 
 </div>

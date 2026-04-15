@@ -14,6 +14,9 @@ def generate_cost_distribution_chart(
         "#50E6FF",
         "#773ADC",
         "#FFB900",
+        "#E74856",
+        "#00B294",
+        "#8764B8",
     ]
 
     labels = list(categories.keys())
@@ -60,15 +63,17 @@ def generate_cost_distribution_chart(
 
 
 categories = {
-    "\U0001f4bb Compute": 10.76,
-    "\U0001f4be Data Services": 13.47,
-    "\U0001f510 Security/Mgmt": 0.30,
-    "\U0001f4ca Monitoring": 0.00,
+    "💻 App Service Plan S1": 73.00,
+    "📦 ACR Premium": 50.00,
+    "🔗 Private Endpoints (3\u00d7)": 21.60,
+    "💾 Storage Account": 8.47,
+    "🌐 Private DNS Zones (3\u00d7)": 1.50,
+    "🔐 Key Vault": 0.30,
 }
 # Remove zero-value category for better chart readability
 categories = {k: v for k, v in categories.items() if v > 0}
 generate_cost_distribution_chart(
     categories,
-    total_monthly=24.53,
+    total_monthly=154.87,
     output_path="agent-output/malta-catering/03-des-cost-distribution.png",
 )

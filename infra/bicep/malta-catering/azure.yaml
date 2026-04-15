@@ -17,9 +17,14 @@ hooks:
   postprovision:
     posix:
       shell: sh
-      run: az resource list --resource-group "${AZURE_RESOURCE_GROUP}" --query "[].{name:name,type:type}" -o table
+      run: |
+        az resource list --resource-group "${AZURE_RESOURCE_GROUP}" --query "[].{name:name,type:type}" -o table
+        echo "Web App: https://$(az webapp show --resource-group "${AZURE_RESOURCE_GROUP}" --name "app-malta-catering-${AZURE_ENV_NAME:-dev}" --query defaultHostName -o tsv 2>/dev/null || echo 'pending')"
       interactive: false
     windows:
       shell: pwsh
-      run: az resource list --resource-group $env:AZURE_RESOURCE_GROUP --query "[].{name:name,type:type}" -o table
+      run: |
+        az resource list --resource-group $env:AZURE_RESOURCE_GROUP --query "[].{name:name,type:type}" -o table
+        $hostname = az webapp show --resource-group $env:AZURE_RESOURCE_GROUP --name "app-malta-catering-$($env:AZURE_ENV_NAME ?? 'dev')" --query defaultHostName -o tsv 2>$null
+        Write-Host "Web App: https://$hostname"
       interactive: false

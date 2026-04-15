@@ -1,8 +1,13 @@
 param name string
 param location string
 param tags object = {}
-param publicNetworkAccess string
 param logAnalyticsWorkspaceResourceId string
+
+@description('Subnet resource ID for the private endpoint.')
+param privateEndpointSubnetResourceId string
+
+@description('Private DNS zone resource ID for Key Vault.')
+param privateDnsZoneResourceId string
 
 @secure()
 param appInsightsConnectionString string
@@ -21,11 +26,23 @@ module vault 'br/public:avm/res/key-vault/vault:0.13.3' = {
     enableVaultForDeployment: false
     enableVaultForDiskEncryption: false
     enableVaultForTemplateDeployment: false
-    publicNetworkAccess: publicNetworkAccess
+    publicNetworkAccess: 'Disabled'
     networkAcls: {
-      bypass: 'None'
-      defaultAction: 'Allow'
+      bypass: 'AzureServices'
+      defaultAction: 'Deny'
     }
+    privateEndpoints: [
+      {
+        subnetResourceId: privateEndpointSubnetResourceId
+        privateDnsZoneGroup: {
+          privateDnsZoneGroupConfigs: [
+            {
+              privateDnsZoneResourceId: privateDnsZoneResourceId
+            }
+          ]
+        }
+      }
+    ]
     secrets: [
       {
         name: 'appinsights-connection-string'

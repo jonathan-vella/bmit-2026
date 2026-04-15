@@ -53,10 +53,10 @@ def generate_waf_chart(scores: dict, output_path: str = "02-waf-scores.png") -> 
 
 
 scores = {
-    "🔒 Security":               7.0,
-    "🔄 Reliability":            6.0,
-    "⚡ Performance Efficiency": 8.0,
-    "💰 Cost Optimization":      9.0,
-    "🔧 Operational Excellence": 6.0,
+    "🔒 Security":               8.0,
+    "🔄 Reliability":            7.0,
+    "⚡ Performance Efficiency": 9.0,
+    "💰 Cost Optimization":      7.0,
+    "🔧 Operational Excellence": 7.0,
 }
 generate_waf_chart(scores, "agent-output/malta-catering/02-waf-scores.png")
