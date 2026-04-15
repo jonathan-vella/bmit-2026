@@ -20,6 +20,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.12.1' = {
     zoneRedundancy: 'Disabled'
     publicNetworkAccess: 'Disabled'
     networkRuleBypassOptions: 'AzureServices'
+    azureADAuthenticationAsArmPolicyStatus: 'enabled'
     privateEndpoints: [
       {
         subnetResourceId: privateEndpointSubnetResourceId
