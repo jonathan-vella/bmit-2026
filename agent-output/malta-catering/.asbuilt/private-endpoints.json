@@ -1,0 +1,170 @@
+[
+  {
+    "customDnsConfigs": [],
+    "customNetworkInterfaceName": "",
+    "etag": "W/\"785af0ca-73d3-40c0-89e7-34d447696f64\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-acrmaltadevb6lg3l-registry-0",
+    "ipConfigurations": [],
+    "location": "swedencentral",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "pep-acrmaltadevb6lg3l-registry-0",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/networkInterfaces/pep-acrmaltadevb6lg3l-registry-0.nic.b39f715a-a2ba-4e11-adbb-2971198c52ae",
+        "resourceGroup": "rg-malta-catering-dev"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "etag": "W/\"785af0ca-73d3-40c0-89e7-34d447696f64\"",
+        "groupIds": [
+          "registry"
+        ],
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-acrmaltadevb6lg3l-registry-0/privateLinkServiceConnections/acrmaltadevb6lg3l-registry-0",
+        "name": "acrmaltadevb6lg3l-registry-0",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.ContainerRegistry/registries/acrmaltadevb6lg3l",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "rg-malta-catering-dev",
+    "subnet": {
+      "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-private-endpoints",
+      "resourceGroup": "rg-malta-catering-dev"
+    },
+    "tags": {
+      "Environment": "dev",
+      "ManagedBy": "Bicep",
+      "Owner": "apex-demo-team",
+      "Project": "malta-catering",
+      "application": "malta-catering",
+      "backup-policy": "none-demo",
+      "costcenter": "demo-001",
+      "maint-window": "sun-02-06",
+      "sla": "99.0",
+      "tech-contact": "platform@example.com",
+      "technical-contact": "platform@example.com",
+      "workload": "ordering-portal"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  },
+  {
+    "customDnsConfigs": [],
+    "customNetworkInterfaceName": "",
+    "etag": "W/\"75ac198a-3990-4323-8011-8efd508b089c\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-kv-malta-dev-b6lg3l-vault-0",
+    "ipConfigurations": [],
+    "location": "swedencentral",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "pep-kv-malta-dev-b6lg3l-vault-0",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/networkInterfaces/pep-kv-malta-dev-b6lg3l-vault-0.nic.85e10d62-6221-4901-a3b5-231abb08c658",
+        "resourceGroup": "rg-malta-catering-dev"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "etag": "W/\"75ac198a-3990-4323-8011-8efd508b089c\"",
+        "groupIds": [
+          "vault"
+        ],
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-kv-malta-dev-b6lg3l-vault-0/privateLinkServiceConnections/kv-malta-dev-b6lg3l-vault-0",
+        "name": "kv-malta-dev-b6lg3l-vault-0",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.KeyVault/vaults/kv-malta-dev-b6lg3l",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "rg-malta-catering-dev",
+    "subnet": {
+      "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-private-endpoints",
+      "resourceGroup": "rg-malta-catering-dev"
+    },
+    "tags": {
+      "Environment": "dev",
+      "ManagedBy": "Bicep",
+      "Owner": "apex-demo-team",
+      "Project": "malta-catering",
+      "application": "malta-catering",
+      "backup-policy": "none-demo",
+      "costcenter": "demo-001",
+      "maint-window": "sun-02-06",
+      "sla": "99.0",
+      "tech-contact": "platform@example.com",
+      "technical-contact": "platform@example.com",
+      "workload": "ordering-portal"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  },
+  {
+    "customDnsConfigs": [],
+    "customNetworkInterfaceName": "",
+    "etag": "W/\"71978adb-88c2-4a9b-becd-0ceaa770acf1\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-stmaltadevb6lg3l-table-0",
+    "ipConfigurations": [],
+    "location": "swedencentral",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "pep-stmaltadevb6lg3l-table-0",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/networkInterfaces/pep-stmaltadevb6lg3l-table-0.nic.c8d28ce5-447a-47ac-a5da-3bcf96275c6d",
+        "resourceGroup": "rg-malta-catering-dev"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "etag": "W/\"71978adb-88c2-4a9b-becd-0ceaa770acf1\"",
+        "groupIds": [
+          "table"
+        ],
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-stmaltadevb6lg3l-table-0/privateLinkServiceConnections/stmaltadevb6lg3l-table-0",
+        "name": "stmaltadevb6lg3l-table-0",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Storage/storageAccounts/stmaltadevb6lg3l",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "rg-malta-catering-dev",
+    "subnet": {
+      "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/virtualNetworks/vnet-malta-catering-dev/subnets/snet-private-endpoints",
+      "resourceGroup": "rg-malta-catering-dev"
+    },
+    "tags": {
+      "Environment": "dev",
+      "ManagedBy": "Bicep",
+      "Owner": "apex-demo-team",
+      "Project": "malta-catering",
+      "application": "malta-catering",
+      "backup-policy": "none-demo",
+      "costcenter": "demo-001",
+      "maint-window": "sun-02-06",
+      "sla": "99.0",
+      "tech-contact": "platform@example.com",
+      "technical-contact": "platform@example.com",
+      "workload": "ordering-portal"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  }
+]

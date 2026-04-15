@@ -1,0 +1,16 @@
+[
+  {
+    "name": "DOCKER_REGISTRY_SERVER_URL",
+    "slotSetting": false,
+    "value": "https://acrmaltadevb6lg3l.azurecr.io"
+  },
+  {
+    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+    "slotSetting": false,
+    "value": "false"
+  },
+  {
+    "name": "DOCKER_CUSTOM_IMAGE_NAME",
+    "value": "DOCKER|acrmaltadevb6lg3l.azurecr.io/malta-catering-app:latest"
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "review_type": "implementation",
+  "review_date": "2026-04-15",
+  "review_pass": 1,
+  "architecture_version": "App Service S1 + VNet + PE",
+  "findings": [
+    {
+      "id": "IMP-001",
+      "severity": "critical",
+      "category": "correctness",
+      "title": "Container Registry SKU is 'Standard' — private endpoints require 'Premium'",
+      "description": "In modules/container-registry.bicep, the ACR SKU is set to 'Standard' (acrSku: 'Standard'). The Standard SKU does NOT support private endpoints. The module also configures a private endpoint with DNS zone group, which will cause a deployment failure at the ARM level because the PE feature is gated behind the Premium SKU. This directly contradicts the implementation plan, preflight check, and governance document, all of which explicitly state ACR should use Premium SKU. The resource inventory table says 'Container Registry is upgraded to Premium SKU to support private endpoints'.",
+      "recommendation": "Change acrSku from 'Standard' to 'Premium' in modules/container-registry.bicep. This is a one-line fix: acrSku: 'Premium'.",
+      "status": "open",
+      "artifact": "modules/container-registry.bicep"
+    },
+    {
+      "id": "IMP-002",
+      "severity": "high",
+      "category": "correctness",
+      "title": "VNet address parameters declared in main.bicep but never passed to virtual-network module",
+      "description": "main.bicep declares three VNet-related parameters: vnetAddressPrefix (default '10.0.0.0/16'), appServiceSubnetPrefix (default '10.0.1.0/24'), and privateEndpointSubnetPrefix (default '10.0.2.0/24'). However, the virtualNetwork module call only passes name, location, tags, and logAnalyticsWorkspaceResourceId — the three address parameters are never forwarded. The virtual-network module uses its own internal defaults: addressPrefix '10.0.0.0/24', appServiceSubnetPrefix '10.0.0.0/27', and privateEndpointsSubnetPrefix '10.0.0.32/27'. The deployed VNet will have a /24 address space with two /27 subnets (30 usable IPs each) instead of the planned /16 address space with two /24 subnets (254 usable IPs each). The /27 subnets are very tight for App Service VNet integration (which can consume IPs quickly during scale-out) and multiple private endpoints.",
+      "recommendation": "Pass the three address parameters from main.bicep to the virtualNetwork module call: addressPrefix: vnetAddressPrefix, appServiceSubnetPrefix: appServiceSubnetPrefix, privateEndpointsSubnetPrefix: privateEndpointSubnetPrefix.",
+      "status": "open",
+      "artifact": "main.bicep"
+    },
+    {
+      "id": "IMP-003",
+      "severity": "high",
+      "category": "correctness",
+      "title": "Staging slot lacks managed identity, app settings, and RBAC — non-functional for blue-green deployment",
+      "description": "The staging slot defined in modules/web-app.bicep only configures siteConfig (linuxFxVersion, acrUseManagedIdentityCreds, http20Enabled, minTlsVersion, ftpsState, alwaysOn). It does NOT define: (1) managedIdentities: { systemAssigned: true } — without this, the slot has no identity and acrUseManagedIdentityCreds cannot work; (2) appSettingsKeyValuePairs — the slot won't have APPLICATIONINSIGHTS_CONNECTION_STRING, AZURE_STORAGE_ACCOUNT_NAME, AZURE_KEYVAULT_URI, or DOCKER_REGISTRY_SERVER_URL; (3) RBAC role assignments — even if the slot gets an identity, it has no Key Vault Secrets User, Storage Table Data Contributor, or AcrPull roles. The staging slot is effectively non-functional and cannot pull container images, resolve KV references, or access storage.",
+      "recommendation": "Add managedIdentities: { systemAssigned: true } and appSettingsKeyValuePairs to the staging slot configuration in the AVM slots array. Create separate RBAC role assignments for the staging slot's principal ID (which will differ from the production slot's principal ID). Alternatively, if the staging slot is not needed for the demo, remove it or default enableStagingSlot to false.",
+      "status": "open",
+      "artifact": "modules/web-app.bicep"
+    },
+    {
+      "id": "IMP-004",
+      "severity": "medium",
+      "category": "consistency",
+      "title": "Implementation reference AVM version table shows 'latest' for pinned modules",
+      "description": "The 05-implementation-reference.md AVM Module Versions table lists 'latest' for Log Analytics (actual: 0.15.0), App Insights (actual: 0.7.1), Key Vault (actual: 0.13.3), Storage (actual: 0.32.0), and Container Registry (actual: 0.12.1). The actual Bicep code uses explicit pinned version references. This inconsistency between the documentation and the deployed code creates confusion for compliance auditors who need to verify exact module versions.",
+      "recommendation": "Update the AVM Module Versions table in 05-implementation-reference.md to show the actual pinned versions matching the Bicep code.",
+      "status": "open",
+      "artifact": "05-implementation-reference.md"
+    },
+    {
+      "id": "IMP-005",
+      "severity": "medium",
+      "category": "compliance",
+      "title": "Storage account diagnostic settings capture only metrics — no operation logs",
+      "description": "The storage account module (modules/storage.bicep) configures diagnosticSettings with only metricCategories (AllMetrics) at both the account and table-service levels. No logCategoriesAndGroups are specified. This means storage read/write/delete operations are not captured in Log Analytics. Azure Security Baseline best practices recommend enabling StorageRead, StorageWrite, and StorageDelete logs for audit trails. The Key Vault and ACR modules correctly include allLogs category groups, making storage the outlier.",
+      "recommendation": "Add logCategoriesAndGroups with categoryGroup 'allLogs' or specific categories (StorageRead, StorageWrite, StorageDelete) to the storage account diagnostic settings. Also consider adding log categories to the table service diagnostic settings.",
+      "status": "open",
+      "artifact": "modules/storage.bicep"
+    },
+    {
+      "id": "IMP-006",
+      "severity": "medium",
+      "category": "consistency",
+      "title": "Budget API version differs between implementation plan and code",
+      "description": "The implementation plan (04-implementation-plan.md) resource inventory table lists the budget as using API version '2023-11-01'. The actual budget.bicep module uses 'Microsoft.Consumption/budgets@2024-08-01'. The code uses a newer API version, which is fine functionally, but the plan document is stale.",
+      "recommendation": "Update the implementation plan resource inventory table to reflect the actual API version 2024-08-01 used in the code.",
+      "status": "open",
+      "artifact": "04-implementation-plan.md"
+    },
+    {
+      "id": "IMP-007",
+      "severity": "low",
+      "category": "correctness",
+      "title": "Phase 'cost-monitoring' is functionally identical to 'all'",
+      "description": "The condition variable arrays in main.bicep make 'cost-monitoring' deploy all 5 phases: deployNetworking, deploySecurityDataImages, deployCompute, and deployCostMonitoring all include 'cost-monitoring' in their arrays. This means selecting phase='cost-monitoring' deploys everything — identical to phase='all'. The @allowed decorator includes both values, creating a redundant option that may confuse operators.",
+      "recommendation": "Either (a) remove 'cost-monitoring' from the earlier phase condition arrays so it only deploys the budget module on top of what's already deployed, or (b) document in the deploy.ps1 help text that 'cost-monitoring' is an alias for 'all'. Option (a) is preferable but requires the operator to deploy earlier phases first.",
+      "status": "open",
+      "artifact": "main.bicep"
+    },
+    {
+      "id": "IMP-008",
+      "severity": "low",
+      "category": "security",
+      "title": "Key Vault softDeleteRetentionInDays set to 7 — minimum allowed",
+      "description": "The Key Vault module sets softDeleteRetentionInDays: 7, which is the minimum allowed by Azure. The Azure default is 90 days. For a demo workload this is acceptable, but if the Key Vault stores any production secrets or the environment is reused, the 7-day window provides minimal protection against accidental deletion. The short retention also means that after a KV is deleted, the name becomes available for reuse in only 7 days, which could be a concern for name squatting.",
+      "recommendation": "Consider increasing softDeleteRetentionInDays to 30 for better data protection, even for demo workloads. Document the 7-day choice as an explicit ADR if retained.",
+      "status": "open",
+      "artifact": "modules/key-vault.bicep"
+    },
+    {
+      "id": "IMP-009",
+      "severity": "low",
+      "category": "compliance",
+      "title": "Private DNS zones have no diagnostic settings",
+      "description": "The private-dns-zones.bicep module creates three DNS zones but does not configure any diagnosticSettings. While DNS zone diagnostics are limited (primarily query volume metrics), other modules consistently apply diagnostic settings for completeness. The Key Vault, Storage, ACR, VNet, App Service Plan, and Web App all have diagnostics configured.",
+      "recommendation": "Add diagnosticSettings to the private DNS zone AVM module calls for consistency across all resources. DNS zones support metric categories that track query volumes.",
+      "status": "open",
+      "artifact": "modules/private-dns-zones.bicep"
+    },
+    {
+      "id": "IMP-010",
+      "severity": "low",
+      "category": "consistency",
+      "title": "Redundant networkAcls on Key Vault and Storage with publicNetworkAccess: 'Disabled'",
+      "description": "Both key-vault.bicep and storage.bicep set publicNetworkAccess: 'Disabled' AND networkAcls: { bypass: 'AzureServices', defaultAction: 'Deny' }. When publicNetworkAccess is Disabled, the networkAcls firewall rules are irrelevant because no public traffic reaches the resource — all access must go through private endpoints. The redundant networkAcls configuration adds visual noise and may confuse reviewers into thinking public network access is partially allowed.",
+      "recommendation": "Remove the networkAcls block from both modules since publicNetworkAccess: 'Disabled' makes it moot. Alternatively, add a code comment explaining the defense-in-depth intent if retained.",
+      "status": "open",
+      "artifact": "modules/key-vault.bicep"
+    },
+    {
+      "id": "IMP-011",
+      "severity": "low",
+      "category": "security",
+      "title": "App Insights connection string exposed in main.bicep deployment outputs",
+      "description": "main.bicep exposes the App Insights connection string as a deployment output: 'output appInsightsConnectionString string = appInsights.outputs.connectionString'. The connection string is also properly stored in Key Vault as a secret and referenced via KV reference in the web app. However, the deployment output makes the connection string visible in the Azure deployment history to anyone with Reader access on the resource group. While App Insights connection strings are not highly sensitive (read-only telemetry ingestion endpoints), this contradicts the security pattern of routing secrets through Key Vault.",
+      "recommendation": "Remove the appInsightsConnectionString output from main.bicep or mark it with @secure() annotation (note: secure outputs are not displayed in deployment history). The connection string is already available through the Key Vault secret.",
+      "status": "open",
+      "artifact": "main.bicep"
+    }
+  ],
+  "summary": {
+    "total_findings": 11,
+    "critical": 1,
+    "high": 2,
+    "medium": 3,
+    "low": 5,
+    "categories": {
+      "correctness": 4,
+      "consistency": 3,
+      "compliance": 2,
+      "security": 2
+    },
+    "verdict": "FAIL",
+    "verdict_rationale": "One critical bug (IMP-001: ACR Standard SKU with private endpoints) will cause deployment failure. Two high-severity issues will cause functional problems: VNet address parameters are declared but never forwarded to the module (IMP-002), and the staging slot is non-functional without managed identity or RBAC (IMP-003). These three findings must be fixed before deployment. The remaining 8 findings are documentation consistency, compliance improvements, and minor security hardening that can be addressed in a subsequent pass.",
+    "must_fix_before_deploy": ["IMP-001", "IMP-002", "IMP-003"]
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "review_type": "architecture",
+  "review_date": "2026-04-15",
+  "review_pass": 1,
+  "architecture_version": "App Service S1 + VNet + PE (revised 2026-04-15)",
+  "prior_findings_status": {
+    "note": "Original Pass 1 findings (pre-revision) were against the ACA Consumption architecture. All 5 findings are now resolved by the revised architecture.",
+    "ARC-001_backup_gap": "RESOLVED — RPO explicitly relaxed to best-effort for demo; production export job path documented",
+    "ARC-002_app_insights": "RESOLVED — Application Insights added (free tier, shared Log Analytics workspace)",
+    "ARC-003_gdpr_erasure": "RESOLVED — PII/order separation pattern defined with customer_* entity deletion + one-way hash",
+    "ARC-004_public_endpoints": "RESOLVED — VNet + 3 private endpoints for KV, Storage, ACR; public access disabled on backends",
+    "ARC-005_staff_access": "RESOLVED — Entra ID with role claims (ARC-005); separate trust boundaries for customer (social IdP) and staff (Entra ID)"
+  },
+  "findings": [
+    {
+      "id": "ARCH-001",
+      "severity": "medium",
+      "category": "accuracy",
+      "title": "Private DNS zone naming inconsistency — 'blob' vs 'table' for Storage Account",
+      "description": "The architecture assessment (Resource #7 in Implementation Handoff) and cost estimate line items ('3 zones: blob, vault, acr') both reference 'privatelink.blob.core.windows.net' for the Storage Account. However, ADR-0003 correctly specifies 'privatelink.table.core.windows.net'. Since the primary data service is Table Storage (orders, menu), the PE subresource must target 'table', not 'blob'. Azure Storage private endpoints are per-subresource — a 'blob' PE will NOT route Table Storage traffic over the VNet. If blob access is also needed (the cost estimate shows $0.02/mo blob storage), a 4th PE + DNS zone would be required, or blob traffic will traverse the public internet.",
+      "recommendation": "Align all artifacts to specify 'privatelink.table.core.windows.net' and PE subresource 'table'. Update the architecture assessment Resource #7 and cost estimate DNS zone descriptions to match ADR-0003. If blob access is required (diagnostics, exports), add a 4th PE (+$7.70/mo) or document that blob traffic over public internet is acceptable.",
+      "status": "open",
+      "artifact": "02-architecture-assessment.md, 03-des-cost-estimate.md"
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "medium",
+      "category": "completeness",
+      "title": "Storage Account PE subresource not explicitly specified in architecture assessment",
+      "description": "The architecture assessment lists 'Private Endpoints: 3 endpoints — KV, Storage, ACR' throughout (Resource SKU table, Implementation Handoff, Security Requirements) without specifying which Storage subresource (blob, table, queue, file) the PE targets. Azure Storage requires a separate PE per subresource. IaC code generation from this spec is ambiguous — an implementer may default to 'blob' (most common) instead of 'table' (actually needed), breaking Table Storage connectivity through the VNet.",
+      "recommendation": "In the Resource SKU Recommendations and Implementation Handoff sections, explicitly state PE subresources. Example: 'Private Endpoints (×3): Key Vault (vault), Storage Account (table), ACR (registry)'. This removes ambiguity for the IaC planner and codegen agents.",
+      "status": "open",
+      "artifact": "02-architecture-assessment.md"
+    },
+    {
+      "id": "ARCH-003",
+      "severity": "low",
+      "category": "consistency",
+      "title": "Stale 'Container Apps' reference in ADR-0001 compliance section",
+      "description": "ADR-0001 Compliance Considerations section states 'Container Apps deploys within swedencentral Azure region — EU data residency satisfied'. This sentence was carried over from the original ACA-based ADR and should reference App Service. The rest of the ADR correctly describes the App Service S1 decision.",
+      "recommendation": "Change to 'App Service deploys within swedencentral Azure region — EU data residency satisfied'.",
+      "status": "open",
+      "artifact": "03-des-adr-0001-app-service-s1-compute.md"
+    },
+    {
+      "id": "ARCH-004",
+      "severity": "low",
+      "category": "consistency",
+      "title": "Stale 'Container Apps' reference in requirements security controls table",
+      "description": "01-requirements.md Recommended Security Controls table lists Managed Identity notes as 'Container Apps to Key Vault and Storage'. This predates the architecture switch to App Service and was not updated when the architecture was revised.",
+      "recommendation": "Update to 'App Service to Key Vault and Storage' in the Managed Identity row of the Recommended Security Controls table.",
+      "status": "open",
+      "artifact": "01-requirements.md"
+    },
+    {
+      "id": "ARCH-005",
+      "severity": "low",
+      "category": "accuracy",
+      "title": "Table Storage write operations cost overestimated by ~$7-8/month",
+      "description": "The cost estimate assumes 2.6M write operations/month (1 TPS sustained 24/7 × 30 days). However, 1 TPS is the PEAK throughput requirement, not a sustained write rate. A catering outlet with 100-1K daily users generates mostly read operations (menu browsing). Realistic write volume: 50-200 orders/day × 30 days = 1,500-6,000 write ops/month — roughly 400× fewer than estimated. Actual Table Storage cost would be <$1/mo vs the estimated $8.45/mo. Net variance ~$7-8/mo is not material to the budget decision but inflates the cost estimate by ~6%.",
+      "recommendation": "Separate read vs write operation estimates using realistic traffic patterns. Example: 200 orders/day = 6,000 writes/month + 5K menu views/day = 150K reads/month. This reduces the Storage line item to ~$1-2/mo and total to ~$118/mo. Alternatively, keep the conservative estimate but annotate it as an upper bound.",
+      "status": "open",
+      "artifact": "03-des-cost-estimate.md"
+    },
+    {
+      "id": "ARCH-006",
+      "severity": "low",
+      "category": "completeness",
+      "title": "Missing risk: staging slot resource contention on shared S1 plan",
+      "description": "The staging slot is positioned as a key capability for blue-green deployments, but the risk assessment does not mention that both slots share the S1 App Service Plan resources (1 vCPU, 1.75 GiB RAM). During swap validation — when both slots serve traffic simultaneously — resource contention could degrade response times. For demo-level traffic this is unlikely to manifest, but it should be documented as a constraint for the production upgrade path.",
+      "recommendation": "Add to the Top Architecture Risks table: 'Staging slot shares S1 resources | Operations | Low | Low | Demo traffic is minimal; for production, upgrade to S2/P1v3 before heavy simultaneous slot usage'.",
+      "status": "open",
+      "artifact": "02-architecture-assessment.md"
+    },
+    {
+      "id": "ARCH-007",
+      "severity": "low",
+      "category": "completeness",
+      "title": "Security baseline gap: allowSharedKeyAccess not explicitly disabled on Storage Account",
+      "description": "The project security baseline (AGENTS.md) mandates 'No shared key access on storage (allowSharedKeyAccess: false) — use Entra ID'. The architecture assessment specifies RBAC auth via Managed Identity with 'Storage Table Data Contributor' role, but does not explicitly require disabling shared key access. While MI-based auth is the primary path, leaving shared key access enabled creates a secondary attack vector if storage account keys are compromised or leaked.",
+      "recommendation": "Add 'allowSharedKeyAccess: false' to the Security Requirements for Implementation table. Verify that the application's Azure.Data.Tables SDK supports Entra ID authentication (DefaultAzureCredential) for Table Storage operations, as some older SDKs require connection strings.",
+      "status": "open",
+      "artifact": "02-architecture-assessment.md"
+    }
+  ],
+  "summary": {
+    "total_findings": 7,
+    "critical": 0,
+    "high": 0,
+    "medium": 2,
+    "low": 5,
+    "verdict": "PASS_WITH_OBSERVATIONS"
+  },
+  "verdict_rationale": "The revised architecture is well-structured and addresses all 5 original Pass 1 findings. WAF scores are justified. SKU selections (S1, ACR Standard) are correct and well-reasoned. Cost estimate is within budget and VNet + PE design is sound. The two medium-severity findings (ARCH-001, ARCH-002) relate to Storage Account PE subresource specification — the DNS zone name is inconsistent across artifacts and the PE subresource is ambiguous. These MUST be resolved before IaC code generation to avoid Table Storage connectivity failures through the VNet. The five low-severity findings are documentation consistency issues and minor completeness gaps that do not affect architectural soundness. No blocking issues — proceed to IaC planning after addressing the medium-severity PE specification findings.",
+  "scores_assessment": {
+    "security_8": "JUSTIFIED — MI + KV + TLS 1.2 + VNet + 3× PE provides strong defense-in-depth. Gaps (no WAF, social IdP EU boundary) properly documented as acceptable for demo scope.",
+    "reliability_7": "JUSTIFIED — 99.95% platform SLA exceeds 99.0% target. Always-on eliminates cold start. Data-loss acceptance for demo is explicit and well-documented. Single-region appropriate for demo.",
+    "performance_9": "SLIGHTLY_GENEROUS — 1 TPS on S1 is genuinely trivial and always-on eliminates cold start concerns. No performance testing evidence supports the score. Defensible for this workload class but 8 would be more conservative.",
+    "cost_7": "JUSTIFIED — ~$126/mo within EUR 100-500 budget (25% utilization). Higher than consumption models but justified by security posture (VNet + PE). RI savings opportunity properly documented.",
+    "operations_7": "JUSTIFIED — Staging slot, managed TLS, App Insights, familiar PaaS platform. No CI/CD, alerts, or runbooks properly flagged as gaps with production upgrade path noted."
+  }
+}

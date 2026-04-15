@@ -1,0 +1,32 @@
+[
+  {
+    "name": "AZURE_STORAGE_ACCOUNT_NAME",
+    "slotSetting": false,
+    "value": "stmaltadevb6lg3l"
+  },
+  {
+    "name": "AZURE_KEYVAULT_URI",
+    "slotSetting": false,
+    "value": "https://kv-malta-dev-b6lg3l.vault.azure.net/"
+  },
+  {
+    "name": "DOCKER_REGISTRY_SERVER_URL",
+    "slotSetting": false,
+    "value": "https://acrmaltadevb6lg3l.azurecr.io"
+  },
+  {
+    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+    "slotSetting": false,
+    "value": "false"
+  },
+  {
+    "name": "WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+    "slotSetting": false,
+    "value": "3"
+  },
+  {
+    "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "slotSetting": false,
+    "value": "@Microsoft.KeyVault(VaultName=kv-malta-dev-b6lg3l;SecretName=appinsights-connection-string)"
+  }
+]

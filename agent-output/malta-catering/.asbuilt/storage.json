@@ -1,0 +1,132 @@
+{
+  "accessTier": "Hot",
+  "accountMigrationInProgress": null,
+  "allowBlobPublicAccess": false,
+  "allowCrossTenantReplication": false,
+  "allowSharedKeyAccess": false,
+  "allowedCopyScope": null,
+  "azureFilesIdentityBasedAuthentication": null,
+  "blobRestoreStatus": null,
+  "creationTime": "2026-04-14T16:07:45.742323+00:00",
+  "customDomain": null,
+  "defaultToOAuthAuthentication": true,
+  "dnsEndpointType": null,
+  "dualStackEndpointPreference": null,
+  "enableExtendedGroups": null,
+  "enableHttpsTrafficOnly": true,
+  "enableNfsV3": null,
+  "encryption": {
+    "encryptionIdentity": {
+      "encryptionFederatedIdentityClientId": null,
+      "encryptionUserAssignedIdentity": null
+    },
+    "keySource": "Microsoft.Storage",
+    "keyVaultProperties": null,
+    "requireInfrastructureEncryption": true,
+    "services": {
+      "blob": {
+        "enabled": true,
+        "keyType": "Account",
+        "lastEnabledTime": "2026-04-14T16:07:45.881878+00:00"
+      },
+      "file": {
+        "enabled": true,
+        "keyType": "Account",
+        "lastEnabledTime": "2026-04-14T16:07:45.881878+00:00"
+      },
+      "queue": null,
+      "table": null
+    }
+  },
+  "extendedLocation": null,
+  "failoverInProgress": null,
+  "geoPriorityReplicationStatus": null,
+  "geoReplicationStats": null,
+  "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Storage/storageAccounts/stmaltadevb6lg3l",
+  "identity": null,
+  "immutableStorageWithVersioning": null,
+  "isHnsEnabled": null,
+  "isLocalUserEnabled": false,
+  "isSftpEnabled": false,
+  "isSkuConversionBlocked": null,
+  "keyCreationTime": {
+    "key1": "2026-04-14T16:07:45.871667+00:00",
+    "key2": "2026-04-14T16:07:45.871667+00:00"
+  },
+  "keyPolicy": null,
+  "kind": "StorageV2",
+  "largeFileSharesState": "Disabled",
+  "lastGeoFailoverTime": null,
+  "location": "swedencentral",
+  "minimumTlsVersion": "TLS1_2",
+  "name": "stmaltadevb6lg3l",
+  "networkRuleSet": {
+    "bypass": "AzureServices",
+    "defaultAction": "Deny",
+    "ipRules": [],
+    "ipv6Rules": [],
+    "resourceAccessRules": null,
+    "virtualNetworkRules": []
+  },
+  "placement": null,
+  "primaryEndpoints": {
+    "blob": "https://stmaltadevb6lg3l.blob.core.windows.net/",
+    "dfs": "https://stmaltadevb6lg3l.dfs.core.windows.net/",
+    "file": "https://stmaltadevb6lg3l.file.core.windows.net/",
+    "internetEndpoints": null,
+    "ipv6Endpoints": null,
+    "microsoftEndpoints": null,
+    "queue": "https://stmaltadevb6lg3l.queue.core.windows.net/",
+    "table": "https://stmaltadevb6lg3l.table.core.windows.net/",
+    "web": "https://stmaltadevb6lg3l.z1.web.core.windows.net/"
+  },
+  "primaryLocation": "swedencentral",
+  "privateEndpointConnections": [
+    {
+      "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Storage/storageAccounts/stmaltadevb6lg3l/privateEndpointConnections/stmaltadevb6lg3l.80129292-876c-4d1f-8b13-b5cea666c1ee",
+      "name": "stmaltadevb6lg3l.80129292-876c-4d1f-8b13-b5cea666c1ee",
+      "privateEndpoint": {
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-stmaltadevb6lg3l-table-0",
+        "resourceGroup": "rg-malta-catering-dev"
+      },
+      "privateLinkServiceConnectionState": {
+        "actionRequired": "None",
+        "description": "Auto-Approved",
+        "status": "Approved"
+      },
+      "provisioningState": "Succeeded",
+      "resourceGroup": "rg-malta-catering-dev",
+      "type": "Microsoft.Storage/storageAccounts/privateEndpointConnections"
+    }
+  ],
+  "provisioningState": "Succeeded",
+  "publicNetworkAccess": "Disabled",
+  "resourceGroup": "rg-malta-catering-dev",
+  "routingPreference": null,
+  "sasPolicy": null,
+  "secondaryEndpoints": null,
+  "secondaryLocation": null,
+  "sku": {
+    "name": "Standard_LRS",
+    "tier": "Standard"
+  },
+  "statusOfPrimary": "available",
+  "statusOfSecondary": null,
+  "storageAccountSkuConversionStatus": null,
+  "tags": {
+    "Environment": "dev",
+    "ManagedBy": "Bicep",
+    "Owner": "apex-demo-team",
+    "Project": "malta-catering",
+    "application": "malta-catering",
+    "backup-policy": "none-demo",
+    "costcenter": "demo-001",
+    "maint-window": "sun-02-06",
+    "sla": "99.0",
+    "tech-contact": "platform@example.com",
+    "technical-contact": "platform@example.com",
+    "workload": "ordering-portal"
+  },
+  "type": "Microsoft.Storage/storageAccounts",
+  "zones": null
+}

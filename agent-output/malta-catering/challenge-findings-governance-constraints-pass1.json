@@ -1,0 +1,62 @@
+{
+  "review_type": "governance",
+  "review_date": "2026-04-15",
+  "review_pass": 1,
+  "architecture_version": "App Service S1 + VNet + PE",
+  "findings": [
+    {
+      "id": "GOV-001",
+      "severity": "medium",
+      "category": "consistency",
+      "title": "Preflight check retains Container Apps terminology",
+      "description": "The preflight check (04-preflight-check.md) contains a collapsible section titled 'Managed Environment Parameters' which is Azure Container Apps terminology. The content within the section actually describes App Service Plan parameters (kind, reserved, skuName, skuCapacity). This is a leftover from a previous architecture iteration that used Container Apps and was not updated when the design pivoted to App Service.",
+      "recommendation": "Rename the section from 'Managed Environment Parameters' to 'App Service Plan Parameters' in 04-preflight-check.md.",
+      "status": "open",
+      "artifact": "04-preflight-check.md"
+    },
+    {
+      "id": "GOV-002",
+      "severity": "medium",
+      "category": "compliance",
+      "title": "No governance assessment of App Service public endpoint",
+      "description": "The governance constraints document thoroughly documents that Key Vault, Storage, and ACR have publicNetworkAccess set to 'Disabled' with PE-only access. However, the Web App retains a public HTTPS endpoint for customer/staff access. The document does not assess whether the Azure Security Baseline initiative (assigned at management group scope) audits public network access on App Service resources. If the initiative's AuditIfNotExists policies cover Microsoft.Web/sites, the deployment would generate a non-compliant resource in the Azure Policy compliance dashboard.",
+      "recommendation": "Add an explicit governance assessment row for App Service public endpoint. Document whether the Azure Security Baseline initiative audits public network access on Microsoft.Web/sites and, if so, whether this is accepted as a known audit finding for the customer-facing web tier.",
+      "status": "open",
+      "artifact": "04-governance-constraints.md"
+    },
+    {
+      "id": "GOV-003",
+      "severity": "low",
+      "category": "risk",
+      "title": "Portal validation deferred — incomplete audit trail",
+      "description": "The governance document states 'Portal Validation: Not performed in this session' and 'assignment coverage is REST-verified but was not cross-checked in Azure Portal'. While the REST API discovery covered 21 assignments, the absence of portal cross-validation means there is no secondary confirmation that all active assignments were captured. The companion JSON reports discovery_status as COMPLETE despite this gap.",
+      "recommendation": "Track portal validation as an open action item in the deployment checklist. Before the first actual deployment, perform a manual portal check of Azure Policy > Assignments at the subscription scope and compare the count to the REST-discovered 21. Consider changing discovery_status to COMPLETE_PENDING_PORTAL_VERIFICATION in the JSON.",
+      "status": "open",
+      "artifact": "04-governance-constraints.md"
+    },
+    {
+      "id": "GOV-004",
+      "severity": "medium",
+      "category": "consistency",
+      "title": "Tag key casing drift between governance requirements and IaC code",
+      "description": "The governance deny policy requires lowercase tag keys: 'environment', 'owner'. The Bicep code in main.bicep uses PascalCase: 'Environment', 'Owner'. Azure Policy tag evaluation is case-insensitive, so this will not cause a deployment failure. However, the visual inconsistency between the governance requirement documentation (lowercase) and the IaC code (PascalCase) creates confusion for compliance reviewers auditing tag alignment. Additionally, the Modify policy that inherits tags from the resource group may create child resources with both casings if the policy applies a different casing than the IaC-applied tags.",
+      "recommendation": "Align tag key casing in main.bicep governanceTags to match the governance document exactly: use lowercase 'environment' and 'owner' instead of PascalCase 'Environment' and 'Owner'. This eliminates visual drift and prevents potential duplicate-casing issues from the tag inheritance Modify policy.",
+      "status": "open",
+      "artifact": "04-governance-constraints.md"
+    }
+  ],
+  "summary": {
+    "total_findings": 4,
+    "critical": 0,
+    "high": 0,
+    "medium": 3,
+    "low": 1,
+    "categories": {
+      "consistency": 2,
+      "compliance": 1,
+      "risk": 1
+    },
+    "verdict": "PASS_WITH_FINDINGS",
+    "verdict_rationale": "The governance constraints document is thorough and well-evidenced from live REST API discovery. The only true deployment blocker (9-tag resource group deny policy) is correctly identified and mitigated. No critical or high severity findings. Three medium findings relate to documentation consistency and a gap in App Service public endpoint assessment. All findings are addressable without architectural changes."
+  }
+}

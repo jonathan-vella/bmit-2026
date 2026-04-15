@@ -1,0 +1,72 @@
+{
+  "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.KeyVault/vaults/kv-malta-dev-b6lg3l",
+  "location": "swedencentral",
+  "name": "kv-malta-dev-b6lg3l",
+  "properties": {
+    "accessPolicies": [],
+    "createMode": null,
+    "enablePurgeProtection": true,
+    "enableRbacAuthorization": true,
+    "enableSoftDelete": true,
+    "enabledForDeployment": false,
+    "enabledForDiskEncryption": false,
+    "enabledForTemplateDeployment": false,
+    "hsmPoolResourceId": null,
+    "networkAcls": {
+      "bypass": "AzureServices",
+      "defaultAction": "Deny",
+      "ipRules": [],
+      "virtualNetworkRules": []
+    },
+    "privateEndpointConnections": [
+      {
+        "etag": null,
+        "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.KeyVault/vaults/kv-malta-dev-b6lg3l/privateEndpointConnections/kv-malta-dev-b6lg3l-vault-0",
+        "privateEndpoint": {
+          "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Network/privateEndpoints/pep-kv-malta-dev-b6lg3l-vault-0",
+          "resourceGroup": "rg-malta-catering-dev"
+        },
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": null,
+          "status": "Approved"
+        },
+        "provisioningState": "Succeeded",
+        "resourceGroup": "rg-malta-catering-dev"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "sku": {
+      "family": "A",
+      "name": "standard"
+    },
+    "softDeleteRetentionInDays": 7,
+    "tenantId": "2d04cb4c-999b-4e60-a3a7-e8993edc768b",
+    "vaultUri": "https://kv-malta-dev-b6lg3l.vault.azure.net/"
+  },
+  "resourceGroup": "rg-malta-catering-dev",
+  "systemData": {
+    "createdAt": "2026-04-14T16:08:06.612000+00:00",
+    "createdBy": "jonathan@lordofthecloud.eu",
+    "createdByType": "User",
+    "lastModifiedAt": "2026-04-15T09:07:32.454000+00:00",
+    "lastModifiedBy": "jonathan@lordofthecloud.eu",
+    "lastModifiedByType": "User"
+  },
+  "tags": {
+    "Environment": "dev",
+    "ManagedBy": "Bicep",
+    "Owner": "apex-demo-team",
+    "Project": "malta-catering",
+    "application": "malta-catering",
+    "backup-policy": "none-demo",
+    "costcenter": "demo-001",
+    "maint-window": "sun-02-06",
+    "sla": "99.0",
+    "tech-contact": "platform@example.com",
+    "technical-contact": "platform@example.com",
+    "workload": "ordering-portal"
+  },
+  "type": "Microsoft.KeyVault/vaults"
+}

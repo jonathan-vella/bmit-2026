@@ -1,0 +1,52 @@
+[
+  {
+    "amount": "500.0",
+    "category": "Cost",
+    "currentSpend": {
+      "amount": "0.0",
+      "unit": "USD"
+    },
+    "eTag": "\"1dcccb6f7ebb6dd\"",
+    "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.Consumption/budgets/budget-malta-catering-dev",
+    "name": "budget-malta-catering-dev",
+    "notifications": {
+      "actual100": {
+        "contactEmails": [
+          "platform@example.com"
+        ],
+        "contactGroups": [],
+        "contactRoles": [],
+        "enabled": true,
+        "operator": "GreaterThanOrEqualTo",
+        "threshold": "100.0"
+      },
+      "forecast120": {
+        "contactEmails": [
+          "platform@example.com"
+        ],
+        "contactGroups": [],
+        "contactRoles": [],
+        "enabled": true,
+        "operator": "GreaterThanOrEqualTo",
+        "threshold": "120.0"
+      },
+      "forecast80": {
+        "contactEmails": [
+          "platform@example.com"
+        ],
+        "contactGroups": [],
+        "contactRoles": [],
+        "enabled": true,
+        "operator": "GreaterThanOrEqualTo",
+        "threshold": "80.0"
+      }
+    },
+    "resourceGroup": "rg-malta-catering-dev",
+    "timeGrain": "Monthly",
+    "timePeriod": {
+      "endDate": "2036-05-01T00:00:00Z",
+      "startDate": "2026-05-01T00:00:00Z"
+    },
+    "type": "Microsoft.Consumption/budgets"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "createdDate": "2026-04-14T16:07:10.709601Z",
+  "customerId": "7715e87d-91bf-454b-a3e6-ade7bf84b65d",
+  "etag": "\"a80d5897-0000-4700-0000-69df54ce0000\"",
+  "features": {
+    "disableLocalAuth": true,
+    "enableLogAccessUsingOnlyResourcePermissions": false,
+    "legacy": 0,
+    "searchVersion": 1
+  },
+  "forceCmkForQuery": true,
+  "id": "/subscriptions/00858ffc-dded-4f0f-8bbf-e17fff0d47d9/resourceGroups/rg-malta-catering-dev/providers/Microsoft.OperationalInsights/workspaces/log-malta-catering-dev",
+  "location": "swedencentral",
+  "modifiedDate": "2026-04-15T09:05:18.504Z",
+  "name": "log-malta-catering-dev",
+  "provisioningState": "Succeeded",
+  "publicNetworkAccessForIngestion": "Enabled",
+  "publicNetworkAccessForQuery": "Enabled",
+  "resourceGroup": "rg-malta-catering-dev",
+  "retentionInDays": 30,
+  "sku": {
+    "lastSkuUpdate": "2026-04-14T16:07:10.709601Z",
+    "name": "PerGB2018"
+  },
+  "tags": {
+    "Environment": "dev",
+    "ManagedBy": "Bicep",
+    "Owner": "apex-demo-team",
+    "Project": "malta-catering",
+    "application": "malta-catering",
+    "backup-policy": "none-demo",
+    "costcenter": "demo-001",
+    "maint-window": "sun-02-06",
+    "sla": "99.0",
+    "tech-contact": "platform@example.com",
+    "technical-contact": "platform@example.com",
+    "workload": "ordering-portal"
+  },
+  "type": "Microsoft.OperationalInsights/workspaces",
+  "workspaceCapping": {
+    "dailyQuotaGb": 5.0,
+    "dataIngestionStatus": "RespectQuota",
+    "quotaNextResetTime": "2026-04-16T05:00:00Z"
+  }
+}
