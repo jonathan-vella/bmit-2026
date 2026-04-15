@@ -57,6 +57,16 @@ The live demo builds an online ordering app for a fictional Maltese catering out
   <br/><em>Cisk Lager: "Malta's finest. Pairs with everything. Especially more Cisk."</em>
 </div>
 
+### 🤖 About That Coca-Cola in the Kinnie Section...
+
+You might notice a few things are _slightly_ off. A stock photo of Coca-Cola where Kinnie should be. A generic beer where Cisk belongs. That's not a bug — it's a feature of working with AI.
+
+**GitHub Copilot is a copilot, not an autopilot.** It wrote the React components, the Express server, the Dockerfile, the sarcastic copy, and the CSS — in minutes, not days. But it sourced images from Unsplash and Wikimedia using generic search terms, and it doesn't know what a Kinnie bottle looks like. _To be fair, most people outside Malta don't either._
+
+This is the point: **AI accelerates the 90% so you can focus on the 10% that requires human judgment** — like knowing that Kinnie is definitely not Coca-Cola, that Cisk Excel comes in a green can, or that pastizzi should never, under any circumstances, be microwaved.
+
+The entire app — UI, server, container, deployment — was built and shipped to Azure App Service in a single Copilot Chat session. The images? Those need a Maltese person. _Mela._
+
 ## Clone & Deploy
 
 ### Prerequisites

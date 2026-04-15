@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "2544566694720444180"
+      "templateHash": "13130668317153241619"
     }
   },
   "parameters": {
@@ -21047,7 +21047,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "14280274879652220957"
+              "templateHash": "1779200971640035686"
             }
           },
           "parameters": {
@@ -21111,6 +21111,9 @@
                   },
                   "networkRuleBypassOptions": {
                     "value": "AzureServices"
+                  },
+                  "azureADAuthenticationAsArmPolicyStatus": {
+                    "value": "enabled"
                   },
                   "privateEndpoints": {
                     "value": [
